@@ -258,12 +258,13 @@ export async function montarPlano(
           if (inicioVD.tipo === 'data' && inicioVD.iso !== existente.data_inicio) {
             dados.data_inicio = inicioVD.iso
           }
-          if (copasa && copasa !== '#' && (existente['matricula_copasa'] ?? '') !== copasa) {
+          if (copasa && copasa !== '#' && (existente.matricula_copasa || '') !== copasa) {
             dados.matricula_copasa = copasa
           }
-          if (cemig && cemig !== '#' && (existente['instalacao_cemig'] ?? '') !== cemig) {
+          if (cemig && cemig !== '#' && (existente.instalacao_cemig || '') !== cemig) {
             dados.instalacao_cemig = cemig
           }
+          // (copasa/cemig vindos da planilha; campos adicionados pela migração 0008)
           contratoPlan = {
             chave: `${imovelPlan.chave}|${inquilinoPlan.chave}`,
             acao: Object.keys(dados).length ? 'atualizar' : 'nada',

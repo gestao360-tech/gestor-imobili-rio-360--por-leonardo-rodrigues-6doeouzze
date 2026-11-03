@@ -117,6 +117,8 @@ export interface ContratoModel {
   clausulas_especiais?: string
   observacoes_juridicas?: string
   arquivo_contrato?: string[]
+  matricula_copasa?: string
+  instalacao_cemig?: string
   status:
     | 'ativo'
     | 'vencendo'
