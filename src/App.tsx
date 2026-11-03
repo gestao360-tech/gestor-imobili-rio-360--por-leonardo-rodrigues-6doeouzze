@@ -14,6 +14,7 @@ import Financeiro from './pages/Financeiro'
 import Reajustes from './pages/Reajustes'
 import Renovacoes from './pages/Renovacoes'
 import Pendencias from './pages/Pendencias'
+import Whatsapp from './pages/Whatsapp'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/reajustes" element={<Reajustes />} />
           <Route path="/renovacoes" element={<Renovacoes />} />
           <Route path="/pendencias" element={<Pendencias />} />
+          <Route path="/whatsapp" element={<Whatsapp />} />
           {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
         </Route>
         <Route path="*" element={<NotFound />} />

@@ -14,6 +14,7 @@ import {
   BarChart3,
   Bot,
   Settings,
+  MessageCircle,
   Search,
   Bell,
   Sun,
@@ -41,8 +42,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-// 13 itens exatos do menu principal solicitados no briefing:
-// 🏠 Visão Geral · 🏢 Imóveis · 👥 Inquilinos · 📄 Contratos · 💰 Financeiro · 📈 Reajustes · 🔄 Renovações · 📅 Agenda · ⚠️ Pendências · 📁 Documentos · 📊 Relatórios · 🤖 Assistente IA · ⚙️ Configurações
+// 14 itens do menu principal: os 13 do briefing + 📱 WhatsApp / Cobranças.
 const navItems = [
   { path: '/', label: 'Visão Geral', icon: Home, emoji: '🏠' },
   { path: '/imoveis', label: 'Imóveis', icon: Building2, emoji: '🏢' },
@@ -53,6 +53,7 @@ const navItems = [
   { path: '/renovacoes', label: 'Renovações', icon: RefreshCw, emoji: '🔄' },
   { path: '/agenda', label: 'Agenda', icon: Calendar, emoji: '📅' },
   { path: '/pendencias', label: 'Pendências', icon: AlertTriangle, emoji: '⚠️' },
+  { path: '/whatsapp', label: 'WhatsApp / Cobranças', icon: MessageCircle, emoji: '📱' },
   { path: '/documentos', label: 'Documentos', icon: FolderOpen, emoji: '📁' },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3, emoji: '📊' },
   { path: '/assistente-ia', label: 'Assistente IA', icon: Bot, emoji: '🤖' },

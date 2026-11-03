@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T20:03:02.725Z",
+  "generatedAt": "2026-11-03T20:31:31.840Z",
   "collections": [
     {
       "name": "users",
@@ -2113,6 +2113,223 @@
         "CREATE UNIQUE INDEX idx_alerta_chave ON alertas_email (chave)",
         "CREATE INDEX idx_alerta_categoria ON alertas_email (categoria)",
         "CREATE INDEX idx_alerta_ativo ON alertas_email (ativo)"
+      ]
+    },
+    {
+      "name": "fila_whatsapp_config",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "valor_json",
+          "type": "json",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_demo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_fila_wa_cfg_chave ON fila_whatsapp_config (chave)"]
+    },
+    {
+      "name": "fila_whatsapp",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "tipo",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia"]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pendente", "aprovado", "enviado", "falhado", "descartado"]
+        },
+        {
+          "name": "cobranca",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "cobrancas"
+        },
+        {
+          "name": "contrato",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "contratos"
+        },
+        {
+          "name": "imovel",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "imoveis"
+        },
+        {
+          "name": "inquilino",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "inquilinos"
+        },
+        {
+          "name": "competencia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vencimento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_devido",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dias_atraso",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dias_antes_vencimento",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario_cadastro",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "telefone_ok",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "mensagem",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "estagio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enviado_em",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onUpdate"]
+        },
+        {
+          "name": "resultado_envio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enviado_via",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_demo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_fila_wa_chave ON fila_whatsapp (chave)",
+        "CREATE INDEX idx_fila_wa_status ON fila_whatsapp (status)",
+        "CREATE INDEX idx_fila_wa_cobranca ON fila_whatsapp (cobranca)"
       ]
     }
   ]

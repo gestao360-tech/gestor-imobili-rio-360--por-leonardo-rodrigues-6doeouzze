@@ -2,6 +2,7 @@
 // e seção "Notificações por e-mail". Todo o texto em português.
 import React, { useRef, useState } from 'react'
 import SecaoNotificacoesEmail from '@/components/configuracoes/SecaoNotificacoesEmail'
+import SecaoWhatsapp from '@/components/configuracoes/SecaoWhatsapp'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   AlertTriangle,
@@ -239,10 +240,17 @@ export default function ImportacaoWizard() {
           <TabsTrigger value="notificacoes" className="text-xs">
             Notificações por e-mail
           </TabsTrigger>
+          <TabsTrigger value="whatsapp" className="text-xs">
+            WhatsApp
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="notificacoes">
           <SecaoNotificacoesEmail />
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <SecaoWhatsapp />
         </TabsContent>
 
         <TabsContent value="importacao">

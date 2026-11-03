@@ -421,6 +421,38 @@ export interface ConfiguracaoModel {
   updated: string
 }
 
+export interface FilaWhatsappModel {
+  id: string
+  chave: string
+  tipo: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  status: 'pendente' | 'aprovado' | 'enviado' | 'falhado' | 'descartado'
+  cobranca?: string
+  contrato?: string
+  imovel?: string
+  inquilino?: string
+  competencia?: string
+  vencimento?: string
+  valor_devido?: number
+  dias_atraso?: number
+  dias_antes_vencimento?: number
+  destinatario?: string
+  destinatario_cadastro?: string
+  telefone_ok?: boolean
+  mensagem: string
+  estagio?: string
+  enviado_em?: string
+  resultado_envio?: string
+  enviado_via?: string
+  is_demo?: boolean
+  created: string
+  updated: string
+  expand?: {
+    imovel?: ImovelModel
+    inquilino?: InquilinoModel
+    contrato?: ContratoModel
+  }
+}
+
 export interface DashboardMetrics {
   totalImoveis: number
   imoveisAlugados: number
