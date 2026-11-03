@@ -11,6 +11,7 @@ import {
   Clock,
   ArrowUpRight,
   Plus,
+  Upload,
   DollarSign,
   AlertTriangle,
   RotateCcw,
@@ -187,6 +188,16 @@ export default function Index() {
             onClick={() => navigate('/pendencias?action=novo')}
           >
             <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />+ Nova pendência
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-8 gap-1 border-slate-300 dark:border-slate-700"
+            onClick={() => navigate('/configuracoes')}
+          >
+            <Upload className="w-3.5 h-3.5 text-purple-600" />
+            Importar planilha
           </Button>
         </div>
       </div>

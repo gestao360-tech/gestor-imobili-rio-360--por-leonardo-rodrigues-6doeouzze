@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T16:34:51.054Z",
+  "generatedAt": "2026-11-03T19:29:59.595Z",
   "collections": [
     {
       "name": "users",
@@ -694,6 +694,18 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "matricula_copasa",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "instalacao_cemig",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
