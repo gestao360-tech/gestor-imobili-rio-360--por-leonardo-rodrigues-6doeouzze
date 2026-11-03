@@ -92,12 +92,15 @@ export function inferirTipo(descricao: string, endereco: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
-  if (/\bBOX|GARAGEM/.test(t)) return 'box_garagem'
-  if (/LOJA|SALA|COMERCIAL|PONTO|SALAO/.test(t)) return 'comercial'
-  if (/KITNET/.test(t)) return 'apartamento'
-  if (/CASA/.test(t)) return 'casa'
-  if (/APART|\bAP\b/.test(t)) return 'apartamento'
-  if (/LOTE|TERRENO/.test(t)) return 'terreno'
+  // Os valores precisam existir no select "tipo" da coleção imoveis
+  // (residencial, comercial, sala, loja, galpao, lote, outros).
+  if (/LOJA/.test(t)) return 'loja'
+  if (/\bSALA\b|ESCRITORIO|CONSULTORIO/.test(t)) return 'sala'
+  if (/GALPAO/.test(t)) return 'galpao'
+  if (/LOTE|TERRENO/.test(t)) return 'lote'
+  if (/BOX|GARAGEM/.test(t)) return 'outros'
+  if (/CASA|KITNET|APART|\bAP\b|RESIDENCIAL/.test(t)) return 'residencial'
+  if (/COMERCIAL|PONTO|SALAO|GALERIA/.test(t)) return 'comercial'
   return 'comercial'
 }
 

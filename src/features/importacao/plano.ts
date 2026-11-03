@@ -33,6 +33,7 @@ import {
   somarMesesISO,
   textoDe,
   valorData,
+  hojeISO,
 } from './normalizacao'
 
 const MES_NUMERO: Record<MesChave, number> = {
@@ -125,7 +126,7 @@ export async function montarPlano(
             endereco: enderecoBruto,
             numero: '',
             complemento: '',
-            bairro: extrairBairro(enderecoBruto),
+            bairro: extrairBairro(enderecoBruto) || 'Não informado',
             cidade: 'Belo Horizonte',
             estado: 'MG',
             area_total: 0,
@@ -180,7 +181,9 @@ export async function montarPlano(
       if (!existente) {
         dados.tipo_pessoa = dig.length === 14 ? 'PJ' : 'PF'
         dados.nome = nomeBruto
-        dados.cpf_cnpj = docInfo?.valido ? dig : docBruto
+        // cpf_cnpj é obrigatório no banco: sem documento, usa um marcador
+        // estável derivado do nome (o casamento continua sendo pelo nome).
+        dados.cpf_cnpj = docInfo?.valido ? dig : docBruto || `N/D-${hashCurto(nomeNorm)}`
         dados.rg_ie = ''
         dados.data_nasc_const = ''
         dados.email = ''
@@ -255,10 +258,10 @@ export async function montarPlano(
           if (inicioVD.tipo === 'data' && inicioVD.iso !== existente.data_inicio) {
             dados.data_inicio = inicioVD.iso
           }
-          if (copasa && copasa !== '#' && (existente.matricula_copasa || '') !== copasa) {
+          if (copasa && copasa !== '#' && (existente['matricula_copasa'] ?? '') !== copasa) {
             dados.matricula_copasa = copasa
           }
-          if (cemig && cemig !== '#' && (existente.instalacao_cemig || '') !== cemig) {
+          if (cemig && cemig !== '#' && (existente['instalacao_cemig'] ?? '') !== cemig) {
             dados.instalacao_cemig = cemig
           }
           contratoPlan = {
@@ -339,8 +342,9 @@ export async function montarPlano(
         if (idx == null) continue
         const mes = MES_NUMERO[chaveMes as MesChave]
         if (!mes) continue
+        // Célula vazia = competência em aberto: entra como a vencer/vencida
+        // (conforme o vencimento) para o Financeiro mostrar o mês pendente.
         const vd = valorData(ler(idx as number))
-        if (vd.tipo === 'vazio') continue
         const competencia = `${anoReferencia}-${String(mes).padStart(2, '0')}`
         const diaVenc = Number(planoContrato.dados.dia_vencimento ?? 10)
         const vencimento = dataVencimento(anoReferencia, mes, diaVenc)

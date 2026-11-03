@@ -10,6 +10,7 @@ import type {
   ColunaExtraida,
   LinhaExtraida,
   MapeamentoColunas,
+  MesChave,
   PlanilhaCarregada,
   RegiaoTabela,
   TabelaExtraida,
@@ -228,21 +229,6 @@ export function mapeamentoSugerido(colunas: ColunaExtraida[]): MapeamentoColunas
   return achado
 }
 
-const MES_SIGLA_PARA_CHAVE: Record<string, MesChave> = {
-  JAN: 'jan',
-  FEV: 'fev',
-  MAR: 'mar',
-  ABR: 'abr',
-  MAI: 'mai',
-  JUN: 'jun',
-  JUL: 'jul',
-  AGO: 'ago',
-  SET: 'set',
-  OUT: 'out',
-  NOV: 'nov',
-  DEZ: 'dez',
-}
-
 function siglaMesDeSigla(sigla: string): MesChave {
-  return MES_SIGLA_PARA_CHAVE[sigla] ?? 'jan'
+  return SIGLAS.indexOf(sigla) >= 0 ? (sigla.toLowerCase() as MesChave) : 'jan'
 }

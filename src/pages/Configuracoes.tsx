@@ -28,8 +28,8 @@ import type {
   TabelaExtraida,
 } from '@/features/importacao/types'
 import {
+  carregarPlanilha,
   extrairTabela,
-  lerArquivoPlanilha,
   mapeamentoSugerido,
   sugerirBlocos,
 } from '@/features/importacao/parser'
@@ -103,7 +103,7 @@ export default function ImportacaoWizard() {
     if (!file) return
     setCarregando(true)
     try {
-      const pl = await lerArquivoPlanilha(file)
+      const pl = await carregarPlanilha(file)
       if (!pl.abas.length) throw new Error('sem abas')
       setPlanilha(pl)
       setAbaSel(0)
@@ -336,7 +336,9 @@ export default function ImportacaoWizard() {
                     }`}
                     onClick={() => setBlocoSel(i)}
                   >
-                    {b.rotulo}
+                    {b.linhaCabecalho > 0
+                      ? `Linha ${b.linhaCabecalho}, colunas ${b.colInicio + 1}–${b.colFim}`
+                      : `Colunas ${b.colInicio + 1}–${b.colFim}`}
                   </Button>
                 ))}
               </div>
@@ -605,7 +607,7 @@ export default function ImportacaoWizard() {
               />
               <MiniStat
                 rotulo="Contratos"
-                criar={relatorio.contratosCriar ?? relatorio.resumo.contratosCriar}
+                criar={relatorio.resumo.contratosCriar}
                 atualizar={relatorio.resumo.contratosAtualizar}
               />
               <MiniStat

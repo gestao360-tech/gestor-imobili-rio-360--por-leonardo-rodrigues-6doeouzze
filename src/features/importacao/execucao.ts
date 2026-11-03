@@ -107,7 +107,7 @@ export async function executarPlano(
           status: cb.status,
           valor_pago: cb.valorPago,
           data_pagamento: cb.dataPagamento ?? '',
-          forma_pagamento: cb.dataPagamento ? 'outra' : undefined,
+          forma_pagamento: 'outra',
         }
         if (cb.observacoes) patch.observacoes = cb.observacoes
         await pb.collection('cobrancas').update(cb.id, patch)
