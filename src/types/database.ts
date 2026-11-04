@@ -241,6 +241,7 @@ export interface CobrancaModel {
     | 'cancelado'
   observacoes?: string
   recibo_gerado?: string
+  recibo_url?: string
   link_pagamento?: string
   is_demo?: boolean
   created: string
@@ -428,7 +429,7 @@ export interface ConfiguracaoModel {
 export interface TemplateWhatsappModel {
   id: string
   nome: string
-  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia' | 'recibo_aluguel'
   texto: string
   padrao?: boolean
   ativo?: boolean
@@ -440,7 +441,7 @@ export interface TemplateWhatsappModel {
 export interface FilaWhatsappModel {
   id: string
   chave: string
-  tipo: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  tipo: 'cobranca_antecipada' | 'alerta_inadimplencia' | 'recibo_aluguel'
   status: 'pendente' | 'aprovado' | 'enviado' | 'falhado' | 'descartado'
   cobranca?: string
   contrato?: string
@@ -462,6 +463,7 @@ export interface FilaWhatsappModel {
   resultado_envio?: string
   enviado_via?: string
   link_incluido?: boolean
+  link_recibo?: string
   is_demo?: boolean
   created: string
   updated: string

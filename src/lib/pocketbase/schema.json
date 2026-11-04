@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T20:08:01.660Z",
+  "generatedAt": "2026-11-04T20:33:09.726Z",
   "collections": [
     {
       "name": "users",
@@ -1262,6 +1262,12 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "recibo_url",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -2220,7 +2226,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia"]
+          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia", "recibo_aluguel"]
         },
         {
           "name": "status",
@@ -2374,6 +2380,12 @@
           "type": "bool",
           "required": false,
           "system": false
+        },
+        {
+          "name": "link_recibo",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -2405,7 +2417,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia"]
+          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia", "recibo_aluguel"]
         },
         {
           "name": "texto",

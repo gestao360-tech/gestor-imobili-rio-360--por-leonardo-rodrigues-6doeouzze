@@ -992,7 +992,10 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
     let incluiuLink = false
     let linkUrl = ''
     let erroLink = ''
-    if (item.getString('cobranca')) {
+    // Itens de RECIBO (tipo recibo_aluguel) já carregam o link do PDF
+    // (fila_whatsapp.link_recibo) na própria mensagem — nunca tentam criar
+    // link de pagamento no Stripe no momento do disparo.
+    if (item.getString('cobranca') && item.getString('tipo') !== 'recibo_aluguel') {
       const resLink = obterLink(item)
       linkUrl = resLink.url
       erroLink = resLink.erro

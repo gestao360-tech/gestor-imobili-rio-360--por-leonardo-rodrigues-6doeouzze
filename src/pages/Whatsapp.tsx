@@ -17,6 +17,7 @@ import {
   XCircle,
   Edit3,
   Link2,
+  Receipt,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -596,6 +597,17 @@ export default function PaginaWhatsapp() {
                             <Link2 className="w-3 h-3" />
                             Link de pagamento incluído
                           </Badge>
+                        )}
+                        {item.tipo === 'recibo_aluguel' && item.link_recibo && (
+                          <a
+                            href={item.link_recibo}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 rounded-md border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/40 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40"
+                          >
+                            <Receipt className="w-3 h-3" />
+                            Recibo em PDF
+                          </a>
                         )}
                       </div>
                       <div className="text-xs text-slate-500">
