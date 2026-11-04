@@ -16,6 +16,7 @@ import {
   Trash2,
   XCircle,
   Edit3,
+  Link2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -589,6 +590,12 @@ export default function PaginaWhatsapp() {
                         )}
                         {!item.telefone_ok && (
                           <Badge variant="destructive">⚠️ Sem WhatsApp válido</Badge>
+                        )}
+                        {item.link_incluido && (
+                          <Badge className="bg-violet-600 text-white gap-1">
+                            <Link2 className="w-3 h-3" />
+                            Link de pagamento incluído
+                          </Badge>
                         )}
                       </div>
                       <div className="text-xs text-slate-500">

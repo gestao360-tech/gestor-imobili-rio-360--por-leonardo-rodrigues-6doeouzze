@@ -14,6 +14,11 @@
  *  • POST /backend/v1/whatsapp/varrer — roda a geração da fila na hora.
  *  • POST /backend/v1/whatsapp/enviar  — envia itens APROVADOS de verdade via
  *    $connectors.executeAsOwner (toolkit "whatsapp", conta do proprietário).
+ *    Antes do disparo, injeta {link_pagamento} (URL da cobrança, do Stripe da
+ *    conta do PROPRIETÁRIO, mesmo fluxo da rota /backend/v1/pagamentos/link):
+ *    reusa o link existente ou tenta criar na confirmação — falha do Stripe
+ *    NÃO bloqueia o envio (a mensagem sai sem o link e o resultado traz o
+ *    aviso; fila_whatsapp.link_incluido registra se a mensagem levou o link).
  *  • POST /backend/v1/whatsapp/teste   — envio de teste para um número informado.
  *  • GET  /backend/v1/whatsapp/templates            — lista os templates.
  *  • POST /backend/v1/whatsapp/templates            — cria um template novo.
@@ -22,7 +27,7 @@
  *
  * Placeholders suportados (substituídos pelos dados reais de cada item):
  *   {inquilino} {primeiro_nome} {imovel} {contrato} {competencia} {vencimento}
- *   {valor} {dias_atraso} {dias_antes_vencimento}
+ *   {valor} {dias_atraso} {dias_antes_vencimento} {link_pagamento}
  * A substituição acontece SEMPRE no backend, na hora da aplicação e de novo no
  * momento do envio — o texto final (sem placeholders) é o que sai.
  *
@@ -830,6 +835,129 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
     )
   }
 
+  // ---- Link de pagamento (Stripe, modo owner) ----
+  // Reusa cobrancas.link_pagamento quando já existe; sem link, tenta criar
+  // AGORA (o item já foi aprovado pelo usuário). A MESMA lógica da rota
+  // /backend/v1/pagamentos/link — falha do Stripe NÃO bloqueia o envio: a
+  // mensagem sai sem o link e o resultado registra o aviso.
+  function obterLink(it) {
+    let cob = null
+    try {
+      cob = app.findRecordById('cobrancas', it.getString('cobranca'))
+    } catch (_) {
+      return { url: '', erro: '' }
+    }
+    const existente = String(cob.getString('link_pagamento') || '').trim()
+    if (existente) return { url: existente, erro: '' }
+    const status = cob.getString('status')
+    if (status === 'pago' || status === 'cancelado' || status === 'renegociado') {
+      return { url: '', erro: '' }
+    }
+    const total = cob.getFloat('valor_total') || 0
+    const pago = cob.getFloat('valor_pago') || 0
+    const saldoCentavos = Math.round((total - pago) * 100)
+    if (saldoCentavos <= 0) return { url: '', erro: '' }
+
+    function nomeInq(id) {
+      try {
+        return app.findRecordById('inquilinos', id).getString('nome')
+      } catch (_) {
+        return ''
+      }
+    }
+    function rotuloIm(id) {
+      try {
+        const im = app.findRecordById('imoveis', id)
+        const end = im.getString('endereco')
+        const num = im.getString('numero')
+        const comp = im.getString('complemento')
+        let txt = end ? end + (num ? ', ' + num : '') : ''
+        if (comp) txt += ' — ' + comp
+        return txt
+      } catch (_) {
+        return ''
+      }
+    }
+    function numContrato(id) {
+      try {
+        return app.findRecordById('contratos', id).getString('numero')
+      } catch (_) {
+        return ''
+      }
+    }
+    function erroDo(resp) {
+      try {
+        if (resp && resp.error) {
+          return String(
+            resp.error.message ||
+              resp.error.description ||
+              (typeof resp.error === 'string' ? resp.error : JSON.stringify(resp.error)),
+          )
+        }
+        if (resp && resp.successful === false) return 'a operação não foi confirmada pelo Stripe.'
+      } catch (_) {
+        /* segue com genérico */
+      }
+      return ''
+    }
+
+    const competencia = cob.getString('competencia') || '—'
+    const descricao =
+      'Aluguel competência ' +
+      competencia +
+      ' — ' +
+      (rotuloIm(cob.getString('imovel')) || 'imóvel') +
+      ' — ' +
+      (nomeInq(cob.getString('inquilino')) || 'inquilino')
+    try {
+      const prod = $connectors.executeAsOwner('stripe', {
+        name: 'STRIPE_CREATE_PRODUCT',
+        params: {
+          name: descricao,
+          metadata: {
+            cobranca_id: cob.id,
+            competencia: competencia,
+            inquilino: cob.getString('inquilino'),
+            imovel: cob.getString('imovel'),
+            contrato: cob.getString('contrato'),
+          },
+        },
+      })
+      let erro = erroDo(prod)
+      if (erro) return { url: '', erro: erro }
+      const dProd = (prod && (prod.data || prod)) || {}
+      const productId = String(dProd.id || '')
+      if (!productId) return { url: '', erro: 'o Stripe não retornou o id do produto.' }
+      const preco = $connectors.executeAsOwner('stripe', {
+        name: 'STRIPE_CREATE_PRICE',
+        params: { currency: 'brl', unit_amount: saldoCentavos, product: productId },
+      })
+      erro = erroDo(preco)
+      if (erro) return { url: '', erro: erro }
+      const dPreco = (preco && (preco.data || preco)) || {}
+      const priceId = String(dPreco.id || '')
+      if (!priceId) return { url: '', erro: 'o Stripe não retornou o id do preço.' }
+      const plink = $connectors.executeAsOwner('stripe', {
+        name: 'STRIPE_CREATE_PAYMENT_LINK',
+        params: {
+          line_items: [{ price: priceId, quantity: 1 }],
+          metadata: { cobranca_id: cob.id, competencia: competencia },
+        },
+      })
+      erro = erroDo(plink)
+      if (erro) return { url: '', erro: erro }
+      const dLink = (plink && (plink.data || plink)) || {}
+      const url = String(dLink.url || '')
+      if (!url) return { url: '', erro: 'o Stripe não retornou a URL do link de pagamento.' }
+      cob.set('link_pagamento', url)
+      app.save(cob)
+      console.log('[pagamentos] link criado na confirmação da fila: cobrança ' + cob.id)
+      return { url: url, erro: '' }
+    } catch (errStripe) {
+      return { url: '', erro: String((errStripe && errStripe.message) || errStripe) }
+    }
+  }
+
   let enviados = 0
   let falhas = 0
   const detalhes = []
@@ -857,11 +985,40 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
       continue
     }
 
+    // ---- Link de pagamento: obtém (reusa) ou tenta criar na confirmação ----
+    // Item APROVADO — o usuário já autorizou o disparo; tentar criar o link
+    // agora é permitido. Falha do Stripe não bloqueia o envio.
+    let avisoLink = ''
+    let incluiuLink = false
+    let linkUrl = ''
+    let erroLink = ''
+    if (item.getString('cobranca')) {
+      const resLink = obterLink(item)
+      linkUrl = resLink.url
+      erroLink = resLink.erro
+      if (linkUrl) incluiuLink = true
+      if (erroLink) {
+        avisoLink = 'Link de pagamento não incluído (' + erroLink + ')'
+        console.log('[whatsapp] envio ' + item.id + ' sem link: ' + erroLink)
+      }
+    }
+
     // Substituição de placeholders no momento do disparo: se o texto ainda tem
     // {placeholder} e o item tem template, renderiza AQUI com os dados reais —
     // nunca sai um "{inquilino}" para o destinatário. Texto editado manualmente
     // (sem placeholders) é enviado como está — a edição manual é a que vale.
-    let texto = item.getString('mensagem')
+    // {link_pagamento} é substituído SEMPRE, com template ou sem; mensagens
+    // antigas sem o placeholder ganham a linha "Pague online" no fim quando há
+    // link; sem link, a linha "Pague online" vazia é removida do texto.
+    const textoOriginal = item.getString('mensagem')
+    let texto = textoOriginal.split('{link_pagamento}').join(linkUrl || '')
+    if (linkUrl && texto.indexOf('💳 Pague online:') === -1) {
+      texto = texto + '\n\n💳 Pague online: ' + linkUrl
+    }
+    if (textoOriginal.indexOf('{link_pagamento}') !== -1 && !linkUrl) {
+      texto = texto.replace(/💳 Pague online:\s*(?=\n|$)/g, '')
+    }
+    texto = texto.replace(/\n{3,}/g, '\n\n')
     if (/\{[a-zA-Z_]+\}/.test(texto)) {
       const tplId = item.getString('template')
       if (tplId) {
@@ -923,9 +1080,17 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
               '{dias_antes_vencimento}': String(
                 Math.max(0, it.getInt('dias_antes_vencimento') || 0),
               ),
+              '{link_pagamento}': linkUrl || '',
             }
             let t = String(tplTexto || '')
             for (const k in vars) t = t.split(k).join(vars[k])
+            // Mensagens antigas sem o placeholder ganham a linha do link no fim;
+            // sem link, a linha "Pague online" vazia é removida.
+            if (linkUrl && t.indexOf('💳 Pague online:') === -1) {
+              t = t + '\n\n💳 Pague online: ' + linkUrl
+            }
+            t = t.replace(/💳 Pague online:\s*(?=\n|$)/g, '')
+            t = t.replace(/\n{3,}/g, '\n\n')
             return t
           })(tpl.getString('texto'), item)
           item.set('mensagem', texto)
@@ -961,23 +1126,36 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
       }
       if (erro) {
         item.set('status', 'falhado')
-        item.set('resultado_envio', erro)
+        item.set('link_incluido', incluiuLink)
+        item.set('resultado_envio', avisoLink ? erro + ' — ' + avisoLink : erro)
         app.save(item)
         falhas++
-        detalhes.push({ id: item.id, ok: false, erro: erro })
+        detalhes.push({ id: item.id, ok: false, erro: erro, aviso: avisoLink })
       } else {
         item.set('status', 'enviado')
         item.set('enviado_em', new Date().toISOString().replace('T', ' '))
         item.set('mensagem_enviada', texto) // cópia exata do que saiu (histórico)
-        item.set('resultado_envio', 'Mensagem enviada em ' + dataHoraBR() + '.')
+        item.set('link_incluido', incluiuLink)
+        item.set(
+          'resultado_envio',
+          avisoLink
+            ? 'Mensagem enviada em ' + dataHoraBR() + ' — ' + avisoLink + '.'
+            : 'Mensagem enviada em ' + dataHoraBR() + '.',
+        )
         item.set('enviado_via', 'WhatsApp (conector)')
         app.save(item)
         enviados++
-        detalhes.push({ id: item.id, ok: true })
+        detalhes.push({
+          id: item.id,
+          ok: true,
+          aviso: avisoLink,
+          com_link: incluiuLink,
+        })
       }
     } catch (err) {
       const msgErro = String((err && err.message) || err)
       item.set('status', 'falhado')
+      item.set('link_incluido', incluiuLink)
       item.set('resultado_envio', msgErro)
       app.save(item)
       falhas++

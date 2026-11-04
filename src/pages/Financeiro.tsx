@@ -16,6 +16,10 @@ import {
   User,
   ArrowDownLeft,
   ArrowUpRight,
+  Link2,
+  Copy,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react'
 import {
   getCobrancas,
@@ -24,6 +28,7 @@ import {
   formatDateBR,
   getDespesas,
 } from '@/services/imobiliario'
+import { gerarLinkPagamento } from '@/services/pagamentos'
 import { CobrancaModel, DespesaModel } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,6 +69,79 @@ export default function FinanceiroPage() {
 
   // Recibo para visualização/impressão
   const [reciboVisualizar, setReciboVisualizar] = useState<CobrancaModel | null>(null)
+
+  // Links de pagamento (Stripe) — estado por cobrança (gerar/copiar)
+  const [gerandoLink, setGerandoLink] = useState<string>('')
+  const [copiandoLink, setCopiandoLink] = useState<string>('')
+  const [erroLink, setErroLink] = useState<{ cobranca: string; mensagem: string } | null>(null)
+  const [cobrancasComLink, setCobrancasComLink] = useState<Record<string, string>>({})
+
+  // Status "em aberto" = qualquer um que ainda tem dinheiro a receber
+  const cobrancaEmAberto = (c: CobrancaModel) =>
+    c.status !== 'pago' &&
+    c.status !== 'cancelado' &&
+    c.status !== 'renegociado' &&
+    (c.valor_total || 0) - (c.valor_pago || 0) > 0
+
+  const handleGerarLink = async (item: CobrancaModel) => {
+    setErroLink(null)
+    setGerandoLink(item.id)
+    try {
+      const res = await gerarLinkPagamento(item.id)
+      if (res.ok && res.url) {
+        setCobrancasComLink((prev) => ({ ...prev, [item.id]: res.url as string }))
+        toast({
+          title: res.criado ? 'Link de pagamento criado!' : 'Link de pagamento existente',
+          description: res.criado
+            ? 'O link do Stripe foi gerado e vinculado à cobrança.'
+            : 'A cobrança já tinha um link — ele foi reutilizado (nada duplicado).',
+        })
+      } else {
+        const msg = res.erro || 'Não foi possível gerar o link de pagamento.'
+        setErroLink({ cobranca: item.id, mensagem: msg })
+        toast({ title: 'Erro ao gerar link', description: msg, variant: 'destructive' })
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao comunicar com o servidor.'
+      setErroLink({ cobranca: item.id, mensagem: msg })
+      toast({
+        title: 'Erro ao gerar link',
+        description: msg.includes('Stripe')
+          ? msg
+          : msg + ' — conecte/autorize o Stripe nas configurações (Conectores).',
+        variant: 'destructive',
+      })
+    } finally {
+      setGerandoLink('')
+    }
+  }
+
+  const handleCopiarLink = async (item: CobrancaModel) => {
+    const url = cobrancasComLink[item.id] || item.link_pagamento || ''
+    if (!url) return
+    setCopiandoLink(item.id)
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      toast({ title: 'Link copiado', description: 'Envie ao inquilino por qualquer canal.' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Não foi possível copiar o link.'
+      setErroLink({ cobranca: item.id, mensagem: msg })
+      toast({ title: 'Erro ao copiar', description: msg, variant: 'destructive' })
+    } finally {
+      setCopiandoLink('')
+    }
+  }
 
   useEffect(() => {
     loadData()
@@ -326,6 +404,25 @@ export default function FinanceiroPage() {
 
       {abaAtiva === 'receber' && (
         <>
+          {/* ERRO DO LINK DE PAGAMENTO — mensagem clara, nunca sucesso falso */}
+          {erroLink && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <strong>Link de pagamento:</strong> {erroLink.mensagem}
+                <div className="mt-0.5 text-amber-700 dark:text-amber-300">
+                  Verifique a conexão do Stripe em Configurações (Conectores) e tente novamente.
+                </div>
+              </div>
+              <button
+                onClick={() => setErroLink(null)}
+                className="ml-auto shrink-0 text-amber-600 hover:text-amber-800 dark:text-amber-300"
+                aria-label="Fechar aviso"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {/* FILTROS E BUSCA */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="relative w-full sm:w-72">
@@ -370,13 +467,14 @@ export default function FinanceiroPage() {
                     <th className="p-3">Total Faturado</th>
                     <th className="p-3">Total Recebido</th>
                     <th className="p-3">Status</th>
+                    <th className="p-3">Link de Pagamento</th>
                     <th className="p-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-slate-400">
+                      <td colSpan={11} className="p-8 text-center text-slate-400">
                         Nenhuma cobrança encontrada.
                       </td>
                     </tr>
@@ -417,8 +515,62 @@ export default function FinanceiroPage() {
                             {formatBRL(item.valor_pago || 0)}
                           </td>
                           <td className="p-3">{statusCobrancaBadge(item.status)}</td>
+                          <td className="p-3">
+                            {(cobrancasComLink[item.id] || item.link_pagamento) && (
+                              <Badge className="bg-violet-600 text-white gap-1 whitespace-nowrap">
+                                <Link2 className="w-3 h-3" />
+                                com link
+                              </Badge>
+                            )}
+                          </td>
                           <td className="p-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
+                              {cobrancaEmAberto(item) && (
+                                <>
+                                  {!cobrancasComLink[item.id] && !item.link_pagamento ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-[11px] text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 gap-1"
+                                      disabled={gerandoLink === item.id}
+                                      onClick={() => handleGerarLink(item)}
+                                    >
+                                      {gerandoLink === item.id ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <Link2 className="w-3 h-3" />
+                                      )}
+                                      {gerandoLink === item.id ? 'Gerando...' : 'Gerar link'}
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 px-2 text-[11px] text-slate-600 dark:text-slate-300 gap-1"
+                                        disabled={copiandoLink === item.id}
+                                        onClick={() => handleCopiarLink(item)}
+                                      >
+                                        {copiandoLink === item.id ? (
+                                          <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                          <Copy className="w-3 h-3" />
+                                        )}
+                                        Copiar
+                                      </Button>
+                                      <a
+                                        href={cobrancasComLink[item.id] || item.link_pagamento}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700 px-2 text-[11px] text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Abrir
+                                      </a>
+                                    </>
+                                  )}
+                                </>
+                              )}
                               {item.status !== 'pago' && (
                                 <Button
                                   size="sm"

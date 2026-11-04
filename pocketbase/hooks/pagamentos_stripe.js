@@ -188,9 +188,14 @@ routerAdd('POST', '/backend/v1/pagamentos/link', (e) => {
       erro: 'Não foi possível criar o link de pagamento no Stripe: ' + erro,
     })
   } catch (errStripe) {
+    // Falha típica quando a conta Stripe do PROPRIETÁRIO não está conectada ou
+    // o modo owner não está liberado — mensagem clara, nunca sucesso falso.
     return e.json(502, {
       ok: false,
-      erro: 'Erro no Stripe: ' + String((errStripe && errStripe.message) || errStripe),
+      erro:
+        'Erro no Stripe: ' +
+        String((errStripe && errStripe.message) || errStripe) +
+        ' — conecte/autorize o Stripe nas configurações (Conectores) e tente de novo.',
     })
   }
 })

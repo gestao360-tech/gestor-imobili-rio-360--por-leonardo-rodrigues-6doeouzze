@@ -241,6 +241,7 @@ export interface CobrancaModel {
     | 'cancelado'
   observacoes?: string
   recibo_gerado?: string
+  link_pagamento?: string
   is_demo?: boolean
   created: string
   updated: string
@@ -460,6 +461,7 @@ export interface FilaWhatsappModel {
   enviado_em?: string
   resultado_envio?: string
   enviado_via?: string
+  link_incluido?: boolean
   is_demo?: boolean
   created: string
   updated: string
