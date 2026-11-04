@@ -7,6 +7,17 @@
  *  POST /backend/v1/whatsapp/varrer  — roda a geração da fila na hora (mesma lógica do cron).
  *  POST /backend/v1/whatsapp/enviar  — envia itens APROVADOS via conector WhatsApp (owner).
  *  POST /backend/v1/whatsapp/teste   — envio de teste para um número informado.
+ *  GET  /backend/v1/whatsapp/templates            — lista os templates de mensagem.
+ *  POST /backend/v1/whatsapp/templates            — cria um template novo.
+ *  POST /backend/v1/whatsapp/templates/aplicar    — aplica um template a itens da fila.
+ *  POST /backend/v1/whatsapp/templates/restaurar  — volta o texto padrão do sistema.
+ *
+ * Templates: textos pré-definidos com placeholders ({inquilino}, {imovel}, {valor},
+ * {vencimento}, {dias_atraso}, {competencia}…) substituídos pelos dados reais de
+ * cada item da fila — a substituição acontece sempre no BACKEND, na aplicação e de
+ * novo no momento do envio. Nada sai sem aprovação na fila: o envio exige status
+ * "aprovado" (ou reenvio de "falhado"), e itens sem um número válido entram como
+ * "precisa de atenção" (telefone_ok = false) e nunca são enviados.
  *
  * Nada sai sem aprovação na fila: o envio exige status "aprovado" (ou reenvio de
  * "falhado"), e itens sem um número válido entram como "precisa de atenção"
@@ -185,4 +196,81 @@ export async function descartarItensFila(ids: string[]): Promise<ResultadoLote> 
     }
   }
   return { ok: erros.length === 0, afetados: aprovados, aprovados, erros }
+}
+
+// ----------------- TEMPLATES DE MENSAGEM (coleção `fila_whatsapp_templates`) -----------------
+
+export interface TemplateWhatsapp {
+  id: string
+  nome: string
+  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  texto: string
+  padrao: boolean
+  ativo: boolean
+  created?: string
+  updated?: string
+}
+
+/** Placeholders disponíveis nos templates — listados na tela para o usuário copiar. */
+export const PLACEHOLDERS_WHATSAPP: { chave: string; descricao: string }[] = [
+  { chave: '{inquilino}', descricao: 'Nome completo do inquilino' },
+  { chave: '{primeiro_nome}', descricao: 'Primeiro nome do inquilino' },
+  { chave: '{imovel}', descricao: 'Endereço do imóvel (com número e bairro)' },
+  { chave: '{contrato}', descricao: 'Número do contrato' },
+  { chave: '{competencia}', descricao: 'Competência da cobrança (ex.: 2026-11)' },
+  { chave: '{vencimento}', descricao: 'Data de vencimento (dd/mm/aaaa)' },
+  { chave: '{valor}', descricao: 'Valor devido, formatado em R$' },
+  { chave: '{dias_atraso}', descricao: 'Dias de atraso (0 quando ainda não venceu)' },
+  { chave: '{dias_antes_vencimento}', descricao: 'Dias de antecedência do aviso' },
+]
+
+export async function getTemplatesWhatsapp(): Promise<TemplateWhatsapp[]> {
+  const dados = (await get('/backend/v1/whatsapp/templates')) as {
+    templates?: TemplateWhatsapp[]
+  }
+  return dados.templates || []
+}
+
+export async function criarTemplateWhatsapp(dados: {
+  nome: string
+  categoria: TemplateWhatsapp['categoria']
+  texto: string
+}): Promise<{ ok: boolean; id?: string; erro?: string }> {
+  return (await post('/backend/v1/whatsapp/templates', dados)) as unknown as {
+    ok: boolean
+    id?: string
+    erro?: string
+  }
+}
+
+export async function editarTemplateWhatsapp(id: string, texto: string): Promise<{ ok: boolean }> {
+  await pb.collection('fila_whatsapp_templates').update(id, { texto })
+  return { ok: true }
+}
+
+/** Restaura o texto padrão do sistema (só para templates marcados como padrão). */
+export async function restaurarTemplateWhatsapp(
+  id: string,
+): Promise<{ ok: boolean; texto?: string; erro?: string }> {
+  return (await post('/backend/v1/whatsapp/templates/restaurar', { id })) as unknown as {
+    ok: boolean
+    texto?: string
+    erro?: string
+  }
+}
+
+/** Aplica um template a itens da fila — a mensagem é re-renderizada no backend. */
+export async function aplicarTemplateFila(
+  ids: string[],
+  templateId: string,
+): Promise<{ ok: boolean; aplicados: number; ignorados: number; erros: string[] }> {
+  return (await post('/backend/v1/whatsapp/templates/aplicar', {
+    itens: ids,
+    template_id: templateId,
+  })) as unknown as {
+    ok: boolean
+    aplicados: number
+    ignorados: number
+    erros: string[]
+  }
 }

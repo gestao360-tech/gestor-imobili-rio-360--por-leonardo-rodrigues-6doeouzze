@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T20:31:31.840Z",
+  "generatedAt": "2026-11-04T18:27:47.075Z",
   "collections": [
     {
       "name": "users",
@@ -2324,12 +2324,94 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "template",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "fila_whatsapp_templates"
+        },
+        {
+          "name": "mensagem_enviada",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE UNIQUE INDEX idx_fila_wa_chave ON fila_whatsapp (chave)",
         "CREATE INDEX idx_fila_wa_status ON fila_whatsapp (status)",
-        "CREATE INDEX idx_fila_wa_cobranca ON fila_whatsapp (cobranca)"
+        "CREATE INDEX idx_fila_wa_cobranca ON fila_whatsapp (cobranca)",
+        "CREATE INDEX `idx_fila_wa_template` ON `fila_whatsapp` (template)"
+      ]
+    },
+    {
+      "name": "fila_whatsapp_templates",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "categoria",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["cobranca_antecipada", "alerta_inadimplencia"]
+        },
+        {
+          "name": "texto",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "padrao",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ativo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_demo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_fila_wa_tpl_nome ON fila_whatsapp_templates (nome)",
+        "CREATE INDEX idx_fila_wa_tpl_categoria ON fila_whatsapp_templates (categoria)"
       ]
     }
   ]

@@ -15,6 +15,16 @@
  *  • POST /backend/v1/whatsapp/enviar  — envia itens APROVADOS de verdade via
  *    $connectors.executeAsOwner (toolkit "whatsapp", conta do proprietário).
  *  • POST /backend/v1/whatsapp/teste   — envio de teste para um número informado.
+ *  • GET  /backend/v1/whatsapp/templates            — lista os templates.
+ *  • POST /backend/v1/whatsapp/templates            — cria um template novo.
+ *  • POST /backend/v1/whatsapp/templates/aplicar    — aplica um template a itens da fila.
+ *  • POST /backend/v1/whatsapp/templates/restaurar  — volta o texto padrão do sistema.
+ *
+ * Placeholders suportados (substituídos pelos dados reais de cada item):
+ *   {inquilino} {primeiro_nome} {imovel} {contrato} {competencia} {vencimento}
+ *   {valor} {dias_atraso} {dias_antes_vencimento}
+ * A substituição acontece SEMPRE no backend, na hora da aplicação e de novo no
+ * momento do envio — o texto final (sem placeholders) é o que sai.
  *
  * O envio acontece no backend, com a conta do PROPRIETÁRIO conectada no app
  * (Conectores) — nunca OAuth manual, nunca $http para a API do WhatsApp.
@@ -835,7 +845,6 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
     if (status === 'enviado' || status === 'descartado') continue
 
     const numero = item.getString('destinatario')
-    const texto = item.getString('mensagem')
     if (!numero || item.getBool('telefone_ok') === false) {
       item.set('status', 'falhado')
       item.set(
@@ -846,6 +855,84 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
       falhas++
       detalhes.push({ id: item.id, ok: false, erro: item.getString('resultado_envio') })
       continue
+    }
+
+    // Substituição de placeholders no momento do disparo: se o texto ainda tem
+    // {placeholder} e o item tem template, renderiza AQUI com os dados reais —
+    // nunca sai um "{inquilino}" para o destinatário. Texto editado manualmente
+    // (sem placeholders) é enviado como está — a edição manual é a que vale.
+    let texto = item.getString('mensagem')
+    if (/\{[a-zA-Z_]+\}/.test(texto)) {
+      const tplId = item.getString('template')
+      if (tplId) {
+        try {
+          const tpl = app.findRecordById('fila_whatsapp_templates', tplId)
+          texto = (function (tplTexto, it) {
+            function brl(v) {
+              const n = Number(v) || 0
+              const s = Math.abs(n).toFixed(2)
+              const partes = s.split('.')
+              const inteiro = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+              return (n < 0 ? '-R$ ' : 'R$ ') + inteiro + ',' + partes[1]
+            }
+            function dataBR(iso) {
+              if (!iso) return '—'
+              const p = String(iso).split('T')[0].split('-')
+              return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso)
+            }
+            function nomeInq(id) {
+              try {
+                return app.findRecordById('inquilinos', id).getString('nome')
+              } catch (_) {
+                return ''
+              }
+            }
+            function rotuloIm(id) {
+              try {
+                const im = app.findRecordById('imoveis', id)
+                const end = im.getString('endereco')
+                const num = im.getString('numero')
+                const comp = im.getString('complemento')
+                const bairro = im.getString('bairro')
+                let txt = (end ? end + (num ? ', ' + num : '') : '') + (comp ? ' — ' + comp : '')
+                if (bairro) txt += ' (' + bairro + ')'
+                return txt
+              } catch (_) {
+                return ''
+              }
+            }
+            function numContrato(id) {
+              try {
+                return app.findRecordById('contratos', id).getString('numero')
+              } catch (_) {
+                return ''
+              }
+            }
+            const nome = nomeInq(it.getString('inquilino'))
+            const vars = {
+              '{inquilino}': nome || 'cliente',
+              '{primeiro_nome}': String(nome || 'cliente')
+                .trim()
+                .split(/\s+/)[0],
+              '{imovel}': rotuloIm(it.getString('imovel')) || 'imóvel',
+              '{contrato}': numContrato(it.getString('contrato')) || '—',
+              '{competencia}': it.getString('competencia') || '—',
+              '{vencimento}': dataBR(it.getString('vencimento')),
+              '{valor}': brl(it.getFloat('valor_devido') || 0),
+              '{dias_atraso}': String(Math.max(0, it.getInt('dias_atraso') || 0)),
+              '{dias_antes_vencimento}': String(
+                Math.max(0, it.getInt('dias_antes_vencimento') || 0),
+              ),
+            }
+            let t = String(tplTexto || '')
+            for (const k in vars) t = t.split(k).join(vars[k])
+            return t
+          })(tpl.getString('texto'), item)
+          item.set('mensagem', texto)
+        } catch (_) {
+          // sem template resolvível — envia o texto como está
+        }
+      }
     }
 
     try {
@@ -881,6 +968,7 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
       } else {
         item.set('status', 'enviado')
         item.set('enviado_em', new Date().toISOString().replace('T', ' '))
+        item.set('mensagem_enviada', texto) // cópia exata do que saiu (histórico)
         item.set('resultado_envio', 'Mensagem enviada em ' + dataHoraBR() + '.')
         item.set('enviado_via', 'WhatsApp (conector)')
         app.save(item)
@@ -898,6 +986,232 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
   }
 
   return e.json(200, { ok: falhas === 0, enviados: enviados, falhas: falhas, detalhes: detalhes })
+})
+
+// ================= Templates de mensagem (fila_whatsapp_templates) =================
+// Os textos padrão ficam INLINE dentro do callback que os usa (escopo top-level
+// não é compartilhado entre os pools de VM da JSVM do PocketBase).
+
+// ---- GET /backend/v1/whatsapp/templates — lista todos os templates ----
+routerAdd('GET', '/backend/v1/whatsapp/templates', (e) => {
+  const app = e.app
+  const registros = app.findRecordsByFilter('fila_whatsapp_templates', '', '-created', 200, 0)
+  const templates = registros.map((t) => ({
+    id: t.id,
+    nome: t.getString('nome'),
+    categoria: t.getString('categoria'),
+    texto: t.getString('texto'),
+    padrao: t.getBool('padrao'),
+    ativo: t.getBool('ativo'),
+    created: t.getString('created'),
+    updated: t.getString('updated'),
+  }))
+  return e.json(200, { ok: true, templates: templates })
+})
+
+// ---- POST /backend/v1/whatsapp/templates — cria um template novo ----
+routerAdd('POST', '/backend/v1/whatsapp/templates', (e) => {
+  const app = e.app
+  const corpo = e.requestInfo().body || {}
+  const nome = String(corpo.nome || '').trim()
+  const categoria = String(corpo.categoria || '').trim()
+  const texto = String(corpo.texto || '')
+  if (!nome || nome.length < 2) {
+    return e.json(400, { ok: false, erro: 'Informe um nome para o template (mín. 2 letras).' })
+  }
+  if (categoria !== 'cobranca_antecipada' && categoria !== 'alerta_inadimplencia') {
+    return e.json(400, { ok: false, erro: 'Categoria inválida.' })
+  }
+  if (!texto.trim()) {
+    return e.json(400, { ok: false, erro: 'O texto do template não pode ficar vazio.' })
+  }
+  if (texto.length > 4000) {
+    return e.json(400, { ok: false, erro: 'Texto muito longo (máx. 4000 caracteres).' })
+  }
+  try {
+    app.findFirstRecordByFilter(
+      'fila_whatsapp_templates',
+      "nome ~ '" + nome.replace(/'/g, "\\'") + "'",
+    )
+    return e.json(400, {
+      ok: false,
+      erro: 'Já existe um template com esse nome — escolha outro.',
+    })
+  } catch (_) {
+    // nome livre — segue
+  }
+  const col = app.findCollectionByNameOrId('fila_whatsapp_templates')
+  const rec = new Record(col)
+  rec.set('nome', nome)
+  rec.set('categoria', categoria)
+  rec.set('texto', texto)
+  rec.set('padrao', false)
+  rec.set('ativo', true)
+  app.save(rec)
+  return e.json(200, { ok: true, id: rec.id })
+})
+
+// ---- POST /backend/v1/whatsapp/templates/aplicar — aplica template a itens da fila ----
+// Corpo: { itens: [ids], template_id } — cada item recebe o template e a mensagem
+// re-renderizada na hora, com os dados reais do item.
+routerAdd('POST', '/backend/v1/whatsapp/templates/aplicar', (e) => {
+  const app = e.app
+  const corpo = e.requestInfo().body || {}
+  const ids = Array.isArray(corpo.itens) ? corpo.itens : []
+  const templateId = String(corpo.template_id || '')
+
+  function brl(v) {
+    const n = Number(v) || 0
+    const s = Math.abs(n).toFixed(2)
+    const partes = s.split('.')
+    const inteiro = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    return (n < 0 ? '-R$ ' : 'R$ ') + inteiro + ',' + partes[1]
+  }
+  function dataBR(iso) {
+    if (!iso) return '—'
+    const p = String(iso).split('T')[0].split('-')
+    return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso)
+  }
+  function nomeInq(id) {
+    try {
+      return app.findRecordById('inquilinos', id).getString('nome')
+    } catch (_) {
+      return ''
+    }
+  }
+  function rotuloIm(id) {
+    try {
+      const im = app.findRecordById('imoveis', id)
+      const end = im.getString('endereco')
+      const num = im.getString('numero')
+      const comp = im.getString('complemento')
+      const bairro = im.getString('bairro')
+      let txt = (end ? end + (num ? ', ' + num : '') : '') + (comp ? ' — ' + comp : '')
+      if (bairro) txt += ' (' + bairro + ')'
+      return txt
+    } catch (_) {
+      return ''
+    }
+  }
+  function numContrato(id) {
+    try {
+      return app.findRecordById('contratos', id).getString('numero')
+    } catch (_) {
+      return ''
+    }
+  }
+
+  let template = null
+  try {
+    template = app.findRecordById('fila_whatsapp_templates', templateId)
+  } catch (_) {
+    return e.json(400, { ok: false, erro: 'Template não encontrado.' })
+  }
+  const textoTpl = template.getString('texto')
+
+  let aplicados = 0
+  let ignorados = 0
+  const erros = []
+
+  for (const id of ids) {
+    let item = null
+    try {
+      item = app.findRecordById('fila_whatsapp', String(id))
+    } catch (_) {
+      ignorados++
+      continue
+    }
+    // Só itens que ainda podem ser editados: nunca mexe em enviado/descartado.
+    const status = item.getString('status')
+    if (status === 'enviado' || status === 'descartado') {
+      ignorados++
+      continue
+    }
+    try {
+      const nome = nomeInq(item.getString('inquilino'))
+      const vars = {
+        '{inquilino}': nome || 'cliente',
+        '{primeiro_nome}': String(nome || 'cliente')
+          .trim()
+          .split(/\s+/)[0],
+        '{imovel}': rotuloIm(item.getString('imovel')) || 'imóvel',
+        '{contrato}': numContrato(item.getString('contrato')) || '—',
+        '{competencia}': item.getString('competencia') || '—',
+        '{vencimento}': dataBR(item.getString('vencimento')),
+        '{valor}': brl(item.getFloat('valor_devido') || 0),
+        '{dias_atraso}': String(Math.max(0, item.getInt('dias_atraso') || 0)),
+        '{dias_antes_vencimento}': String(Math.max(0, item.getInt('dias_antes_vencimento') || 0)),
+      }
+      let t = String(textoTpl || '')
+      for (const k in vars) t = t.split(k).join(vars[k])
+      item.set('template', templateId)
+      item.set('mensagem', t)
+      app.save(item)
+      aplicados++
+    } catch (errItem) {
+      erros.push(String((errItem && errItem.message) || errItem))
+    }
+  }
+
+  return e.json(200, {
+    ok: erros.length === 0,
+    aplicados: aplicados,
+    ignorados: ignorados,
+    erros: erros,
+  })
+})
+
+// ---- POST /backend/v1/whatsapp/templates/restaurar — volta ao texto padrão ----
+// Corpo: { id } do template. Só vale para templates marcados como padrão do
+// sistema (padrao = true); regrava o texto com o padrão da migração 0011.
+routerAdd('POST', '/backend/v1/whatsapp/templates/restaurar', (e) => {
+  const app = e.app
+  const corpo = e.requestInfo().body || {}
+  const id = String(corpo.id || '')
+
+  let rec = null
+  try {
+    rec = app.findRecordById('fila_whatsapp_templates', id)
+  } catch (_) {
+    return e.json(404, { ok: false, erro: 'Template não encontrado.' })
+  }
+  if (!rec.getBool('padrao')) {
+    return e.json(400, { ok: false, erro: 'Só templates padrão do sistema podem ser restaurados.' })
+  }
+  const categoria = rec.getString('categoria')
+  // Textos padrão INLINE (exatamente os da migração 0011, para o "restaurar padrão").
+  const PADRAO_COBRANCA = [
+    'Olá, {inquilino}! Tudo bem?',
+    '',
+    'Passando para lembrar que o aluguel da competência {competencia} vence em {vencimento}.',
+    '',
+    '📍 Imóvel: {imovel}',
+    '💰 Valor: {valor}',
+    '',
+    'Qualquer dúvida sobre o valor ou condições, estamos à disposição para ajudar.',
+    '',
+    'Atenciosamente,',
+    'Gestão Imobiliária',
+  ].join('\n')
+  const PADRAO_INADIMPLENCIA = [
+    'Olá, {inquilino}! Tudo bem?',
+    '',
+    'Notamos que o aluguel da competência {competencia}, que venceu em {vencimento}, segue em aberto.',
+    '',
+    '📍 Imóvel: {imovel}',
+    '💰 Valor em aberto: {valor}',
+    '⏰ Em atraso há {dias_atraso} dia(s)',
+    '',
+    'Se o pagamento já foi feito, por favor desconsidere esta mensagem. Caso contrário,',
+    'gostaríamos de entender o ocorrido e combinar uma forma de regularização.',
+    '',
+    'Atenciosamente,',
+    'Gestão Imobiliária',
+  ].join('\n')
+  const padrao = categoria === 'cobranca_antecipada' ? PADRAO_COBRANCA : PADRAO_INADIMPLENCIA
+  rec.set('texto', padrao)
+  app.save(rec)
+  return e.json(200, { ok: true, texto: padrao })
 })
 
 // ================= POST /backend/v1/whatsapp/teste =================

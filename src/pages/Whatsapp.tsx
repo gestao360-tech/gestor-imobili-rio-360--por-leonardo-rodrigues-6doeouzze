@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { formatBRL, formatDateBR } from '@/services/imobiliario'
 import {
+  aplicarTemplateFila,
   aprovarItensFila,
   descartarItensFila,
   editarDestinatarioFila,
@@ -33,9 +34,11 @@ import {
   enviarTesteWhatsapp,
   getConfigWhatsapp,
   getFilaWhatsapp,
+  getTemplatesWhatsapp,
   salvarConfigWhatsapp,
   usarTelefoneCadastro,
   varrerFilaWhatsapp,
+  type TemplateWhatsapp,
 } from '@/services/whatsapp'
 import { FilaWhatsappModel } from '@/types/database'
 
@@ -74,6 +77,12 @@ export default function PaginaWhatsapp() {
   const [numeroTeste, setNumeroTeste] = useState('')
   const [mostrarTeste, setMostrarTeste] = useState(false)
 
+  const [templates, setTemplates] = useState<TemplateWhatsapp[]>([])
+  const [templateLote, setTemplateLote] = useState('')
+  const [aplicandoLote, setAplicandoLote] = useState(false)
+  const [templatePorItem, setTemplatePorItem] = useState<Record<string, string>>({})
+  const [aplicandoItem, setAplicandoItem] = useState<string | null>(null)
+
   const carregar = async () => {
     setCarregando(true)
     try {
@@ -102,6 +111,19 @@ export default function PaginaWhatsapp() {
         setDiasAntes(cfg.dias_antes_vencimento)
       })
       .catch(() => setConfig(null))
+    getTemplatesWhatsapp()
+      .then((t) => {
+        setTemplates(t)
+        const inicial: Record<string, string> = {}
+        for (const tpl of t) {
+          if (tpl.categoria === 'cobranca_antecipada' && !inicial.cobranca)
+            inicial.cobranca = tpl.id
+          if (tpl.categoria === 'alerta_inadimplencia' && !inicial.inadimplencia)
+            inicial.inadimplencia = tpl.id
+        }
+        setTemplatePorItem(inicial)
+      })
+      .catch(() => setTemplates([]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtro])
 
@@ -292,6 +314,77 @@ export default function PaginaWhatsapp() {
     }
   }
 
+  /** Aplica o template escolhido a UM item (mensagem re-renderizada no backend). */
+  const aplicarTemplateEmUm = async (item: FilaWhatsappModel, templateId: string) => {
+    if (!templateId) return
+    setAplicandoItem(item.id)
+    try {
+      const r = await aplicarTemplateFila([item.id], templateId)
+      if (r.aplicados > 0) {
+        toast({
+          title: 'Template aplicado',
+          description: 'Mensagem re-renderizada com os dados do item.',
+        })
+      } else {
+        toast({
+          title: 'Não foi possível aplicar o template',
+          description: r.erros[0] || 'Item não pode mais ser editado.',
+          variant: 'destructive',
+        })
+      }
+      await carregar()
+    } catch (e) {
+      toast({
+        title: 'Erro ao aplicar o template',
+        description: e instanceof Error ? e.message : 'Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setAplicandoItem(null)
+    }
+  }
+
+  /** Aplica o template escolhido EM LOTE a todos os itens editáveis da lista. */
+  const aplicarTemplateEmLote = async () => {
+    if (!templateLote) return
+    const alvo = itens.filter((i) => i.status !== 'enviado' && i.status !== 'descartado')
+    if (!alvo.length) {
+      toast({ title: 'Nenhum item editável na lista atual', variant: 'destructive' })
+      return
+    }
+    setAplicandoLote(true)
+    try {
+      const r = await aplicarTemplateFila(
+        alvo.map((i) => i.id),
+        templateLote,
+      )
+      if (r.erros?.length) {
+        toast({
+          title: 'Alguns itens não receberam o template',
+          description: r.erros[0],
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Template aplicado em lote',
+          description: `${r.aplicados} mensagem(ns) re-renderizada(s).`,
+        })
+      }
+      await carregar()
+    } catch (e) {
+      toast({
+        title: 'Erro ao aplicar o template',
+        description: e instanceof Error ? e.message : 'Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setAplicandoLote(false)
+    }
+  }
+
+  const templatesDoTipo = (tipo: string) =>
+    templates.filter((t) => t.categoria === tipo && t.ativo !== false)
+
   const idsAprovados = itens
     .filter((i) => i.status === 'aprovado' || i.status === 'falhado')
     .map((i) => i.id)
@@ -417,6 +510,37 @@ export default function PaginaWhatsapp() {
         </span>
       </div>
 
+      {/* Aplicação de template em lote */}
+      {templates.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap border rounded-lg p-2 bg-slate-50 dark:bg-slate-900">
+          <span className="text-xs font-medium">Template em lote:</span>
+          <select
+            value={templateLote}
+            onChange={(e) => setTemplateLote(e.target.value)}
+            className="text-xs border rounded px-2 py-1 bg-white dark:bg-slate-800"
+          >
+            <option value="">Escolher template…</option>
+            {templates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.nome}
+                {t.padrao ? ' (padrão)' : ''}
+              </option>
+            ))}
+          </select>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={aplicarTemplateEmLote}
+            disabled={!templateLote || aplicandoLote}
+          >
+            Aplicar a todos os itens da lista
+          </Button>
+          <span className="text-[11px] text-slate-400">
+            Cada mensagem é re-renderizada com os dados do próprio item.
+          </span>
+        </div>
+      )}
+
       {/* Lista de itens */}
       {carregando ? (
         <Card>
@@ -541,6 +665,47 @@ export default function PaginaWhatsapp() {
                     <div className="text-[11px] text-red-700 dark:text-red-400">
                       Erro real: {item.resultado_envio}
                     </div>
+                  )}
+
+                  {/* Seletor de template do item */}
+                  {item.status !== 'enviado' && item.status !== 'descartado' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] text-slate-500">Template:</span>
+                      <select
+                        value={templatePorItem[item.tipo] || ''}
+                        onChange={(e) => {
+                          setTemplatePorItem((prev) => ({ ...prev, [item.tipo]: e.target.value }))
+                          aplicarTemplateEmUm(item, e.target.value)
+                        }}
+                        disabled={aplicandoItem === item.id}
+                        className="text-xs border rounded px-2 py-1 bg-white dark:bg-slate-800 max-w-56"
+                      >
+                        <option value="">Escolher template…</option>
+                        {templatesDoTipo(item.tipo).map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.nome}
+                            {t.padrao ? ' (padrão)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {aplicandoItem === item.id && (
+                        <span className="text-[11px] text-slate-400">aplicando…</span>
+                      )}
+                      {item.template && (
+                        <span className="text-[11px] text-slate-400">
+                          (em uso:{' '}
+                          {templates.find((t) => t.id === item.template)?.nome || 'template'})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {item.status === 'enviado' && item.mensagem_enviada && (
+                    <details className="text-[11px] text-slate-500">
+                      <summary className="cursor-pointer">Mensagem enviada (histórico)</summary>
+                      <pre className="text-xs bg-emerald-50 dark:bg-emerald-950 rounded p-2 whitespace-pre-wrap font-sans text-emerald-800 dark:text-emerald-300 mt-1">
+                        {item.mensagem_enviada}
+                      </pre>
+                    </details>
                   )}
 
                   {/* Destinatário */}

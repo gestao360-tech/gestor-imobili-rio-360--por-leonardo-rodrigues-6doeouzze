@@ -14,6 +14,7 @@ import {
   salvarConfigWhatsapp,
   type ConfigWhatsapp,
 } from '@/services/whatsapp'
+import SecaoTemplatesWhatsapp from './SecaoTemplatesWhatsapp'
 
 export default function SecaoWhatsapp() {
   const { toast } = useToast()
@@ -172,6 +173,7 @@ export default function SecaoWhatsapp() {
             Mensagens saem do número fixo conectado (conta do proprietário, via conector).
           </span>
         </div>
+        <SecaoTemplatesWhatsapp />
       </CardContent>
     </Card>
   )

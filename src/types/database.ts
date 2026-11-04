@@ -421,6 +421,18 @@ export interface ConfiguracaoModel {
   updated: string
 }
 
+export interface TemplateWhatsappModel {
+  id: string
+  nome: string
+  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  texto: string
+  padrao?: boolean
+  ativo?: boolean
+  is_demo?: boolean
+  created: string
+  updated: string
+}
+
 export interface FilaWhatsappModel {
   id: string
   chave: string
@@ -440,6 +452,8 @@ export interface FilaWhatsappModel {
   telefone_ok?: boolean
   mensagem: string
   estagio?: string
+  template?: string
+  mensagem_enviada?: string
   enviado_em?: string
   resultado_envio?: string
   enviado_via?: string
