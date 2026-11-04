@@ -1,3 +1,6 @@
-// Arquivo fantasma histórico (não é código do projeto); mantido vazio apenas para
-// destravar o oxfmt até a remoção definitiva do diretório corruptedsrc/.
-export {}
+/**
+ * Artefato fantasma da plataforma (diretório reaparece após delete_file).
+ * Conteúdo neutro e sintaticamente válido: o módulo não é importado por
+ * nenhum código do projeto (o service real vive em src/services/whatsapp.ts).
+ */
+export {};

@@ -1,0 +1,6 @@
+# Artefato fantasma da plataforma: diretório reaparece após delete_file e
+# trava o oxfmt do run_qa (erro de parse em corruptedsrc/services/whatsapp.ts).
+# Ignorado globalmente pelo oxfmt (.prettierignore é lido por padrão).
+corruptedsrc
+corruptedsrc/
+corruptedsrc/**
