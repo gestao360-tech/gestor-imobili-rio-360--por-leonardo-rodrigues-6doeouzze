@@ -203,7 +203,7 @@ export async function descartarItensFila(ids: string[]): Promise<ResultadoLote> 
 export interface TemplateWhatsapp {
   id: string
   nome: string
-  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia'
+  categoria: 'cobranca_antecipada' | 'alerta_inadimplencia' | 'recibo_aluguel'
   texto: string
   padrao: boolean
   ativo: boolean
@@ -222,6 +222,9 @@ export const PLACEHOLDERS_WHATSAPP: { chave: string; descricao: string }[] = [
   { chave: '{valor}', descricao: 'Valor devido, formatado em R$' },
   { chave: '{dias_atraso}', descricao: 'Dias de atraso (0 quando ainda não venceu)' },
   { chave: '{dias_antes_vencimento}', descricao: 'Dias de antecedência do aviso' },
+  { chave: '{valor_pago}', descricao: 'Valor pago da cobrança, formatado em R$' },
+  { chave: '{data_pagamento}', descricao: 'Data do pagamento (dd/mm/aaaa)' },
+  { chave: '{link_recibo}', descricao: 'Link do PDF do recibo de aluguel' },
 ]
 
 export async function getTemplatesWhatsapp(): Promise<TemplateWhatsapp[]> {

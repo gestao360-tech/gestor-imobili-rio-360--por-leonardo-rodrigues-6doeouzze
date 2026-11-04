@@ -29,6 +29,7 @@ import {
   getDespesas,
 } from '@/services/imobiliario'
 import { gerarLinkPagamento } from '@/services/pagamentos'
+import { emitirReciboAluguel, criarItemFilaRecibo } from '@/services/recibos'
 import { CobrancaModel, DespesaModel } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,10 +38,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Send } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
@@ -67,8 +70,25 @@ export default function FinanceiroPage() {
   const [observacoesBaixa, setObservacoesBaixa] = useState('')
   const [salvandoBaixa, setSalvandoBaixa] = useState(false)
 
-  // Recibo para visualização/impressão
-  const [reciboVisualizar, setReciboVisualizar] = useState<CobrancaModel | null>(null)
+  // Recibo de aluguel — estado por cobrança (emissão / envio à fila)
+  const [emitindoRecibo, setEmitindoRecibo] = useState<string>('')
+  const [avisosRecibo, setAvisosRecibo] = useState<{ cobranca: string; mensagem: string } | null>(
+    null,
+  )
+  const [erroRecibo, setErroRecibo] = useState<{ cobranca: string; mensagem: string } | null>(null)
+  const [enviandoReciboFila, setEnviandoReciboFila] = useState<string>('')
+  // Pós-baixa: URL do recibo emitido, para oferecer "Enviar recibo ao WhatsApp"
+  const [baixaConcluida, setBaixaConcluida] = useState<{
+    cobranca: CobrancaModel
+    reciboUrl: string
+  } | null>(null)
+  // Cobranças com recibo já emitido (número + URL), mescladas com os dados reais
+  const [recibos, setRecibos] = useState<Record<string, { numero?: string; url?: string }>>({})
+
+  const reciboDe = (item: CobrancaModel) => recibos[item.id] || {}
+  const cobrancaQuitavel = (item: CobrancaModel) =>
+    (item.status === 'pago' || item.status === 'pago_parcialmente') && (item.valor_pago || 0) > 0
+  const urlRecibo = (item: CobrancaModel) => reciboDe(item).url || item.recibo_url || ''
 
   // Links de pagamento (Stripe) — estado por cobrança (gerar/copiar)
   const [gerandoLink, setGerandoLink] = useState<string>('')
@@ -175,6 +195,92 @@ export default function FinanceiroPage() {
     }
   }
 
+  /** Emite o recibo: busca dados no backend, gera o PDF no cliente, sobe em
+   *  documentos e grava número/URL na cobrança. Cobrança em aberto NUNCA finge
+   *  sucesso — o erro do backend ("exige baixa") vira aviso visível. */
+  const handleEmitirRecibo = async (item: CobrancaModel) => {
+    if (!cobrancaQuitavel(item)) {
+      setAvisosRecibo({
+        cobranca: item.id,
+        mensagem:
+          'O recibo de quitação exige baixa: registre o pagamento (total ou parcial) antes de emitir o recibo.',
+      })
+      toast({
+        title: 'Recibo exige baixa',
+        description: 'Registre o pagamento (total ou parcial) antes de emitir o recibo.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setErroRecibo(null)
+    setAvisosRecibo(null)
+    setEmitindoRecibo(item.id)
+    try {
+      const dados = await emitirReciboAluguel(item.id)
+      setRecibos((prev) => ({
+        ...prev,
+        [item.id]: { numero: dados.numero, url: dados.url },
+      }))
+      if (dados.url) {
+        const a = document.createElement('a')
+        a.href = dados.url
+        a.target = '_blank'
+        a.rel = 'noreferrer'
+        a.download = 'recibo-' + dados.numero + '.pdf'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
+      toast({
+        title: 'Recibo ' + dados.numero + ' emitido!',
+        description:
+          dados.saldo > 0.005
+            ? 'PDF gerado e salvo em Documentos (saldo parcial: ' + formatBRL(dados.saldo) + ').'
+            : 'PDF gerado, baixado e salvo em Documentos.',
+      })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao emitir o recibo.'
+      setErroRecibo({ cobranca: item.id, mensagem: msg })
+      toast({ title: 'Erro ao emitir recibo', description: msg, variant: 'destructive' })
+    } finally {
+      setEmitindoRecibo('')
+    }
+  }
+
+  /** Cria o item PENDENTE na fila de WhatsApp (nada dispara sozinho). Dedupe
+   *  no backend; aviso "precisa de atenção" quando o WhatsApp é inválido. */
+  const handleEnviarReciboWhatsApp = async (cobrancaId: string, url: string) => {
+    setErroRecibo(null)
+    setAvisosRecibo(null)
+    setEnviandoReciboFila(cobrancaId)
+    try {
+      const res = await criarItemFilaRecibo(cobrancaId, url)
+      if (res.aviso) {
+        setAvisosRecibo({ cobranca: cobrancaId, mensagem: res.aviso })
+        toast({ title: 'Atenção', description: res.aviso, variant: 'destructive' })
+        return
+      }
+      if (res.dedupe) {
+        toast({
+          title: 'Recibo já está na fila',
+          description: 'Esta cobrança já tem um item de recibo aguardando confirmação.',
+        })
+      } else {
+        toast({
+          title: 'Recibo na fila do WhatsApp!',
+          description:
+            'Item pendente criado — revise e confirme o envio na página 📱 WhatsApp (nada dispara sozinho).',
+        })
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao enfileirar o recibo.'
+      setErroRecibo({ cobranca: cobrancaId, mensagem: msg })
+      toast({ title: 'Erro ao enviar recibo', description: msg, variant: 'destructive' })
+    } finally {
+      setEnviandoReciboFila('')
+    }
+  }
+
   const handleOpenBaixa = (cob: CobrancaModel) => {
     setCobrancaBaixa(cob)
     const saldoRestante = Math.max(0, (cob.valor_total || 0) - (cob.valor_pago || 0))
@@ -197,6 +303,7 @@ export default function FinanceiroPage() {
 
     setSalvandoBaixa(true)
     try {
+      const cobrancaAlvo = cobrancaBaixa
       await registrarBaixaPagamento({
         cobrancaId: cobrancaBaixa.id,
         valorPago: valorBaixa,
@@ -208,11 +315,25 @@ export default function FinanceiroPage() {
 
       toast({
         title: 'Pagamento registrado com sucesso!',
-        description: `Baixa de ${formatBRL(valorBaixa)} confirmada. Recibo gerado.`,
+        description: `Baixa de ${formatBRL(valorBaixa)} confirmada.`,
       })
 
       setCobrancaBaixa(null)
       loadData()
+
+      // Recibo automaticamente após a baixa: emite o PDF e OFERECE o envio ao
+      // WhatsApp — o envio em si nunca dispara sozinho (fila pendente).
+      try {
+        const dados = await emitirReciboAluguel(cobrancaAlvo.id)
+        setRecibos((prev) => ({
+          ...prev,
+          [cobrancaAlvo.id]: { numero: dados.numero, url: dados.url },
+        }))
+        setBaixaConcluida({ cobranca: cobrancaAlvo, reciboUrl: dados.url })
+      } catch (errRecibo: unknown) {
+        // Recibo não é crítico para a baixa: o usuário pode emitir depois pelo botão.
+        console.warn('Recibo pós-baixa não emitido:', errRecibo)
+      }
     } catch (err) {
       toast({
         title: 'Erro ao registrar baixa',
@@ -581,16 +702,42 @@ export default function FinanceiroPage() {
                                   Registrar Baixa
                                 </Button>
                               )}
-                              {(item.status === 'pago' || item.status === 'pago_parcialmente') && (
+                              {item.status !== 'cancelado' && item.status !== 'renegociado' && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 px-2 text-[11px] text-slate-600 dark:text-slate-300 gap-1"
-                                  onClick={() => setReciboVisualizar(item)}
+                                  className={
+                                    cobrancaQuitavel(item)
+                                      ? 'h-7 px-2 text-[11px] text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 gap-1'
+                                      : 'h-7 px-2 text-[11px] text-slate-400 dark:text-slate-500 gap-1'
+                                  }
+                                  title={
+                                    cobrancaQuitavel(item)
+                                      ? 'Gerar e baixar o recibo de quitação (PDF)'
+                                      : 'O recibo de quitação exige baixa — registre o pagamento primeiro'
+                                  }
+                                  disabled={emitindoRecibo === item.id}
+                                  onClick={() => handleEmitirRecibo(item)}
                                 >
-                                  <Receipt className="w-3 h-3" />
+                                  {emitindoRecibo === item.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Receipt className="w-3 h-3" />
+                                  )}
                                   Recibo
                                 </Button>
+                              )}
+                              {urlRecibo(item) && (
+                                <a
+                                  href={urlRecibo(item)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex h-7 items-center gap-1 rounded-md border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 px-2 text-[11px] font-medium text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40"
+                                  title="Abrir o PDF do recibo emitido"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  PDF
+                                </a>
                               )}
                             </div>
                           </td>
@@ -903,6 +1050,95 @@ export default function FinanceiroPage() {
               Fechar
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* RECIBO PÓS-BAIXA: OFERECE "ENVIAR RECIBO AO WHATSAPP" (nada dispara sozinho) */}
+      <Dialog open={!!baixaConcluida} onOpenChange={(open) => !open && setBaixaConcluida(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-violet-600" />
+              <span>Pagamento registrado — enviar recibo?</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              O recibo de quitação foi gerado e salvo em Documentos. Você pode enviá-lo ao inquilino
+              pelo WhatsApp — a mensagem entra PENDENTE na fila e só sai após a sua confirmação.
+            </DialogDescription>
+          </DialogHeader>
+
+          {baixaConcluida && (
+            <div className="space-y-3 text-xs">
+              <div className="p-3 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 rounded space-y-1">
+                <div>
+                  Inquilino:{' '}
+                  <strong>
+                    {baixaConcluida.cobranca.expand?.inquilino?.nome ||
+                      baixaConcluida.cobranca.inquilino}
+                  </strong>
+                </div>
+                <div>
+                  Competência: <strong>{baixaConcluida.cobranca.competencia}</strong>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <a
+                    href={baixaConcluida.reciboUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-violet-700 dark:text-violet-300 hover:underline"
+                  >
+                    <Receipt className="w-3 h-3" />
+                    Ver recibo em PDF
+                  </a>
+                </div>
+              </div>
+
+              {avisosRecibo && avisosRecibo.cobranca === baixaConcluida.cobranca.id && (
+                <div className="p-2.5 rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{avisosRecibo.mensagem}</span>
+                </div>
+              )}
+              {erroRecibo && erroRecibo.cobranca === baixaConcluida.cobranca.id && (
+                <div className="p-2.5 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{erroRecibo.mensagem}</span>
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBaixaConcluida(null)}
+                  className="text-xs"
+                >
+                  Depois
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-violet-600 hover:bg-violet-700 text-white text-xs gap-1"
+                  disabled={
+                    enviandoReciboFila === baixaConcluida.cobranca.id || !baixaConcluida.reciboUrl
+                  }
+                  onClick={async () => {
+                    await handleEnviarReciboWhatsApp(
+                      baixaConcluida.cobranca.id,
+                      baixaConcluida.reciboUrl,
+                    )
+                    setBaixaConcluida(null)
+                  }}
+                >
+                  {enviandoReciboFila === baixaConcluida.cobranca.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Send className="w-3 h-3" />
+                  )}
+                  Enviar recibo ao WhatsApp
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -577,6 +577,10 @@ export default function PaginaWhatsapp() {
                           <span className="inline-flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5 text-blue-600" /> Cobrança de aluguel
                           </span>
+                        ) : item.tipo === 'recibo_aluguel' ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Receipt className="w-3.5 h-3.5 text-violet-600" /> Recibo de aluguel
+                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1">
                             <AlertTriangle className="w-3.5 h-3.5 text-red-600" /> Alerta de

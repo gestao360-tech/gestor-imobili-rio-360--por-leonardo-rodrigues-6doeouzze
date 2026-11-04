@@ -1084,6 +1084,9 @@ routerAdd('POST', '/backend/v1/whatsapp/enviar', (e) => {
                 Math.max(0, it.getInt('dias_antes_vencimento') || 0),
               ),
               '{link_pagamento}': linkUrl || '',
+              '{valor_pago}': brl(it.getFloat('valor_pago') || 0),
+              '{data_pagamento}': dataBR(it.getString('data_pagamento') || ''),
+              '{link_recibo}': it.getString('link_recibo') || '',
             }
             let t = String(tplTexto || '')
             for (const k in vars) t = t.split(k).join(vars[k])
