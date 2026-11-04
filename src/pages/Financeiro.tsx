@@ -399,7 +399,9 @@ export default function FinanceiroPage() {
       case 'vencido':
         return <Badge variant="destructive">Vencido</Badge>
       case 'em_negociacao':
-        return <Badge className="bg-purple-600 text-white">Em Negociação</Badge>
+        return (
+          <Badge className="bg-navy-secondary text-white border-navy-border">Em Negociação</Badge>
+        )
       case 'renegociado':
         return <Badge className="bg-blue-600 text-white">Renegociado</Badge>
       case 'cancelado':
@@ -638,8 +640,8 @@ export default function FinanceiroPage() {
                           <td className="p-3">{statusCobrancaBadge(item.status)}</td>
                           <td className="p-3">
                             {(cobrancasComLink[item.id] || item.link_pagamento) && (
-                              <Badge className="bg-violet-600 text-white gap-1 whitespace-nowrap">
-                                <Link2 className="w-3 h-3" />
+                              <Badge className="bg-navy-secondary text-gold-luminous border border-gold-metallic/40 gap-1 whitespace-nowrap shadow-2xs">
+                                <Link2 className="w-3 h-3 text-gold-metallic" />
                                 com link
                               </Badge>
                             )}
@@ -652,7 +654,7 @@ export default function FinanceiroPage() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="h-7 px-2 text-[11px] text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 gap-1"
+                                      className="h-7 px-2 text-[11px] text-primary hover:text-primary-hover border-primary/40 hover:bg-primary/10 gap-1"
                                       disabled={gerandoLink === item.id}
                                       onClick={() => handleGerarLink(item)}
                                     >
@@ -708,7 +710,7 @@ export default function FinanceiroPage() {
                                   variant="outline"
                                   className={
                                     cobrancaQuitavel(item)
-                                      ? 'h-7 px-2 text-[11px] text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 gap-1'
+                                      ? 'h-7 px-2 text-[11px] text-gold-dark dark:text-gold-luminous border-gold-metallic/50 hover:bg-gold-light/20 dark:hover:bg-gold-metallic/15 gap-1 font-medium'
                                       : 'h-7 px-2 text-[11px] text-slate-400 dark:text-slate-500 gap-1'
                                   }
                                   title={
@@ -732,7 +734,7 @@ export default function FinanceiroPage() {
                                   href={urlRecibo(item)}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="inline-flex h-7 items-center gap-1 rounded-md border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 px-2 text-[11px] font-medium text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40"
+                                  className="inline-flex h-7 items-center gap-1 rounded-md border border-gold-metallic/40 bg-gold-light/20 dark:bg-gold-metallic/15 px-2 text-[11px] font-medium text-gold-dark dark:text-gold-luminous hover:bg-gold-light/35 dark:hover:bg-gold-metallic/25"
                                   title="Abrir o PDF do recibo emitido"
                                 >
                                   <ExternalLink className="w-3 h-3" />
@@ -1058,7 +1060,7 @@ export default function FinanceiroPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-violet-600" />
+              <Receipt className="w-5 h-5 text-gold-dark dark:text-gold-luminous" />
               <span>Pagamento registrado — enviar recibo?</span>
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -1069,7 +1071,7 @@ export default function FinanceiroPage() {
 
           {baixaConcluida && (
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 rounded space-y-1">
+              <div className="p-3 bg-gold-light/20 dark:bg-navy-secondary/60 border border-gold-metallic/35 dark:border-navy-border rounded space-y-1">
                 <div>
                   Inquilino:{' '}
                   <strong>
@@ -1085,9 +1087,9 @@ export default function FinanceiroPage() {
                     href={baixaConcluida.reciboUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-violet-700 dark:text-violet-300 hover:underline"
+                    className="inline-flex items-center gap-1 text-gold-dark dark:text-gold-luminous hover:underline font-medium"
                   >
-                    <Receipt className="w-3 h-3" />
+                    <Receipt className="w-3 h-3 text-gold-metallic" />
                     Ver recibo em PDF
                   </a>
                 </div>
@@ -1117,7 +1119,7 @@ export default function FinanceiroPage() {
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-violet-600 hover:bg-violet-700 text-white text-xs gap-1"
+                  className="bg-primary hover:bg-primary-hover text-white text-xs gap-1 shadow-glow-brand/30"
                   disabled={
                     enviandoReciboFila === baixaConcluida.cobranca.id || !baixaConcluida.reciboUrl
                   }

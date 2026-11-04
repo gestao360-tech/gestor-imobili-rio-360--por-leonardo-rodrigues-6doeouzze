@@ -579,7 +579,7 @@ export default function PaginaWhatsapp() {
                           </span>
                         ) : item.tipo === 'recibo_aluguel' ? (
                           <span className="inline-flex items-center gap-1">
-                            <Receipt className="w-3.5 h-3.5 text-violet-600" /> Recibo de aluguel
+                            <Receipt className="w-3.5 h-3.5 text-gold-metallic" /> Recibo de aluguel
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1">
@@ -597,8 +597,8 @@ export default function PaginaWhatsapp() {
                           <Badge variant="destructive">⚠️ Sem WhatsApp válido</Badge>
                         )}
                         {item.link_incluido && (
-                          <Badge className="bg-violet-600 text-white gap-1">
-                            <Link2 className="w-3 h-3" />
+                          <Badge className="bg-navy-secondary text-gold-light gap-1 border border-gold-metallic/40">
+                            <Link2 className="w-3 h-3 text-gold-luminous" />
                             Link de pagamento incluído
                           </Badge>
                         )}
@@ -607,7 +607,7 @@ export default function PaginaWhatsapp() {
                             href={item.link_recibo}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 rounded-md border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/40 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40"
+                            className="inline-flex items-center gap-1 rounded-md border border-gold-metallic/50 bg-gold-light/20 dark:bg-navy-secondary px-1.5 py-0.5 text-[10px] font-medium text-gold-dark dark:text-gold-luminous hover:bg-gold-light/40 transition-colors"
                           >
                             <Receipt className="w-3 h-3" />
                             Recibo em PDF

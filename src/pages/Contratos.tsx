@@ -296,7 +296,7 @@ export default function ContratosPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-violet-500/30 text-violet-200/70 text-[10px] uppercase">
+              <tr className="border-b border-gold-metallic/30 text-gold-luminous/80 text-[10px] uppercase">
                 <th className="pb-2 font-semibold">Imóvel</th>
                 <th className="pb-2 font-semibold">Inquilino</th>
                 <th className="pb-2 font-semibold">Aluguel Atual</th>
@@ -310,7 +310,7 @@ export default function ContratosPage() {
                 <th className="pb-2 font-semibold">Garantia</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-violet-500/15 text-slate-200">
+            <tbody className="divide-y divide-gold-metallic/15 text-slate-200">
               {contratosAtivos.map((c) => {
                 const sit = situacaoFinanceiraContrato(
                   cobrancas.filter((cb) => cb.contrato === c.id),
@@ -322,12 +322,12 @@ export default function ContratosPage() {
                 return (
                   <tr
                     key={`lt-${c.id}`}
-                    className="hover:bg-violet-500/10 cursor-pointer"
+                    className="hover:bg-gold-light/10 cursor-pointer transition-colors"
                     onClick={() => setDetalheContrato(c)}
                   >
                     <td className="py-2.5 font-medium">{c.expand?.imovel?.nome || c.imovel}</td>
                     <td className="py-2.5">{c.expand?.inquilino?.nome || c.inquilino}</td>
-                    <td className="py-2.5 font-bold text-fuchsia-300">
+                    <td className="py-2.5 font-bold text-gold-luminous">
                       {formatBRL(c.valor_atual)}
                     </td>
                     <td className="py-2.5 text-slate-400">{formatDateBR(c.data_inicio)}</td>
@@ -367,7 +367,7 @@ export default function ContratosPage() {
                           className={
                             renov.startsWith('Renovação')
                               ? 'border-amber-400 text-amber-300 text-[10px]'
-                              : 'border-violet-400 text-violet-300 text-[10px]'
+                              : 'border-gold-metallic/60 text-gold-luminous text-[10px]'
                           }
                         >
                           {renov}

@@ -123,14 +123,14 @@ export default function Layout() {
         {/* Top Logo */}
         <div className="relative h-16 px-4 flex items-center justify-between border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center text-white font-extrabold text-sm shadow-glow-brand ring-1 ring-white/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center text-white font-extrabold text-sm shadow-glow-brand ring-1 ring-gold-luminous/40">
               360
             </div>
             <div>
               <div className="font-extrabold text-[13px] tracking-tight text-white flex items-center gap-1.5">
-                GESTOR IMOBILIÁRIO <span className="text-fuchsia-300 font-extrabold">360</span>
+                GESTOR IMOBILIÁRIO <span className="text-gold-luminous font-extrabold">360</span>
               </div>
-              <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-[0.18em] font-semibold">
+              <div className="text-[10px] text-gold-light/70 uppercase tracking-[0.18em] font-semibold">
                 Gestão Patrimonial
               </div>
             </div>
@@ -144,12 +144,12 @@ export default function Layout() {
         </div>
 
         {/* Demo banner badge */}
-        <div className="relative px-3 py-2 border-b border-violet-500/20 bg-violet-500/10 flex items-center justify-between text-xs">
-          <span className="flex items-center gap-1.5 text-violet-200 font-medium">
-            <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse shadow-glow-brand" />
+        <div className="relative px-3 py-2 border-b border-gold-metallic/20 bg-gold-metallic/10 flex items-center justify-between text-xs">
+          <span className="flex items-center gap-1.5 text-gold-light font-medium">
+            <span className="w-2 h-2 rounded-full bg-gold-luminous animate-pulse shadow-glow-gold" />
             Dados Demonstrativos
           </span>
-          <span className="text-[10px] bg-violet-500/25 text-violet-100 px-1.5 py-0.5 rounded-full font-semibold">
+          <span className="text-[10px] bg-gold-metallic/25 text-gold-light px-1.5 py-0.5 rounded-full font-semibold border border-gold-metallic/30">
             Ativo
           </span>
         </div>
@@ -180,7 +180,7 @@ export default function Layout() {
                 {item.path === '/assistente-ia' && (
                   <Badge
                     variant="outline"
-                    className="border-fuchsia-400/40 text-fuchsia-200 text-[9px] px-1 py-0 uppercase bg-fuchsia-500/10"
+                    className="border-gold-metallic/50 text-gold-luminous text-[9px] px-1 py-0 uppercase bg-gold-metallic/10"
                   >
                     IA
                   </Badge>
@@ -199,7 +199,7 @@ export default function Layout() {
         <div className="relative p-3 border-t border-sidebar-border bg-sidebar-background/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-gradient-brand flex items-center justify-center text-[11px] font-bold text-white ring-2 ring-violet-500/30">
+              <div className="w-8 h-8 rounded-full bg-gradient-brand flex items-center justify-center text-[11px] font-bold text-white ring-2 ring-gold-metallic/40">
                 {user?.name ? user.name.slice(0, 2).toUpperCase() : 'AD'}
               </div>
               <div className="overflow-hidden">

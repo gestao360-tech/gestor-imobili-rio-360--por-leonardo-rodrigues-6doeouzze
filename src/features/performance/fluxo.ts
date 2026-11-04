@@ -64,14 +64,14 @@ const ROTULOS_CATEGORIA: Record<string, string> = {
 }
 
 const PALETA_CATEGORIA = [
-  '#7c3aed', // violeta (marca)
-  '#d946ef', // fúcsia (marca)
-  '#0ea5e9',
-  '#f59e0b',
-  '#10b981',
-  '#f43f5e',
-  '#6366f1',
-  '#94a3b8',
+  '#F15A24', // Laranja institucional
+  '#D4A347', // Dourado metálico
+  '#102B46', // Azul-marinho secundário
+  '#FFD477', // Dourado luminoso
+  '#10b981', // Esmeralda
+  '#f59e0b', // Âmbar
+  '#f43f5e', // Rose
+  '#98601F', // Dourado escuro
 ]
 
 export function corCategoria(i: number): string {

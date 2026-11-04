@@ -201,7 +201,7 @@ export default function Index() {
             className="text-xs h-8 gap-1 border-border rounded-full"
             onClick={() => navigate('/configuracoes')}
           >
-            <Upload className="w-3.5 h-3.5 text-fuchsia-600" />
+            <Upload className="w-3.5 h-3.5 text-primary" />
             Importar planilha
           </Button>
         </div>
@@ -244,7 +244,7 @@ export default function Index() {
 
         {/* 4. CONTRATOS A VENCER */}
         <CartaoKpi
-          acento="violet"
+          acento="gold"
           icone={<CalendarClock className="w-4 h-4" />}
           rotulo="Contratos a vencer"
           valor={
@@ -469,14 +469,14 @@ export default function Index() {
       {/* DEMAIS INDICADORES EXECUTIVOS (COMPLETANDO OS 17 OBRIGATÓRIOS DO BRIEFING) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* 7. Total de imóveis */}
-        <div className="p-3 rounded-xl border border-violet-200/70 dark:border-violet-500/25 bg-gradient-brand-soft">
-          <div className="text-[10px] font-extrabold text-violet-700/80 dark:text-violet-300/70 uppercase tracking-wider">
+        <div className="p-3 rounded-xl border border-gold-metallic/35 dark:border-gold-metallic/25 bg-gradient-gold-soft">
+          <div className="text-[10px] font-extrabold text-gold-bronze dark:text-gold-light/85 uppercase tracking-wider">
             1. Total imóveis
           </div>
-          <div className="text-base font-extrabold text-violet-700 dark:text-violet-200 mt-0.5">
+          <div className="text-base font-extrabold text-gold-dark dark:text-gold-luminous mt-0.5">
             {metrics?.totalImoveis ?? 0}
           </div>
-          <div className="text-[10px] text-violet-700/60 dark:text-violet-300/50">cadastrados</div>
+          <div className="text-[10px] text-gold-bronze/75 dark:text-gold-light/60">cadastrados</div>
         </div>
 
         {/* 8. Imóveis alugados */}
@@ -517,14 +517,14 @@ export default function Index() {
         </div>
 
         {/* 11. Receita anual acumulada */}
-        <div className="p-3 rounded-xl border border-fuchsia-200/70 dark:border-fuchsia-500/25 bg-gradient-brand-soft">
-          <div className="text-[10px] font-extrabold text-fuchsia-700/80 dark:text-fuchsia-300/70 uppercase tracking-wider">
+        <div className="p-3 rounded-xl border border-orange-200/80 dark:border-orange-500/25 bg-gradient-brand-soft">
+          <div className="text-[10px] font-extrabold text-orange-800 dark:text-orange-200/80 uppercase tracking-wider">
             10. Receita anual
           </div>
-          <div className="text-base font-extrabold text-fuchsia-700 dark:text-fuchsia-200 mt-0.5">
+          <div className="text-base font-extrabold text-orange-700 dark:text-orange-300 mt-0.5">
             {metrics ? formatBRL(metrics.receitaAnualAcumulada) : '...'}
           </div>
-          <div className="text-[10px] text-fuchsia-700/60 dark:text-fuchsia-300/50">
+          <div className="text-[10px] text-orange-800/70 dark:text-orange-300/60">
             acumulado do ano
           </div>
         </div>
@@ -595,7 +595,7 @@ export default function Index() {
             </div>
             <Badge
               variant="outline"
-              className="text-xs bg-gradient-brand-soft text-violet-700 dark:text-violet-200 border-violet-200 dark:border-violet-500/40"
+              className="text-xs bg-gradient-brand-soft text-primary dark:text-orange-300 border-primary/30"
             >
               2º Semestre 2026
             </Badge>
@@ -669,7 +669,7 @@ export default function Index() {
         <Card className="bg-gradient-brand-soft flex flex-col justify-between">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-              <Sparkles className="w-4 h-4 text-fuchsia-600" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <span>Resumo Gerencial Semanal</span>
             </CardTitle>
             <p className="text-xs text-muted-foreground">
@@ -691,7 +691,9 @@ export default function Index() {
             </div>
             <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 flex items-center justify-between shadow-2xs">
               <span className="text-muted-foreground">Contratos para renovação</span>
-              <span className="font-bold text-indigo-600">1 (Sala 01 — 45 dias)</span>
+              <span className="font-bold text-navy-secondary dark:text-gold-luminous">
+                1 (Sala 01 — 45 dias)
+              </span>
             </div>
 
             <div className="p-3 bg-gradient-brand rounded-xl mt-2 shadow-glow-brand">
@@ -704,7 +706,7 @@ export default function Index() {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-white text-violet-700 hover:bg-white/90 text-xs h-7 gap-1 font-bold shadow-md"
+                className="w-full bg-white text-navy-deep hover:bg-white/95 text-xs h-7 gap-1 font-bold shadow-md"
                 onClick={() => navigate('/assistente-ia')}
               >
                 Abrir Assistente de Gestão 360

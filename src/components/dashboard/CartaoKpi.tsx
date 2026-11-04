@@ -1,7 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-export type AcentoKpi = 'brand' | 'emerald' | 'amber' | 'rose' | 'sky' | 'violet'
+export type AcentoKpi = 'brand' | 'emerald' | 'amber' | 'rose' | 'sky' | 'violet' | 'gold' | 'navy'
 
 /** Estilos de destaque por indicador: gradiente suave de fundo, ícone em cápsula colorida e brilho no hover. */
 export const kpiStyles: Record<
@@ -9,11 +9,11 @@ export const kpiStyles: Record<
   { card: string; chip: string; valor: string; rotulo: string; detalhe: string }
 > = {
   brand: {
-    card: 'border-violet-200/80 dark:border-violet-500/30 bg-gradient-brand-soft shadow-glow-brand/30 hover:shadow-glow-brand',
+    card: 'border-orange-300/70 dark:border-orange-500/30 bg-gradient-brand-soft shadow-glow-brand/20 hover:shadow-glow-brand',
     chip: 'bg-gradient-brand text-white shadow-glow-brand',
-    valor: 'text-violet-700 dark:text-violet-200',
-    rotulo: 'text-violet-600/80 dark:text-violet-300/70',
-    detalhe: 'text-violet-600/70 dark:text-violet-300/60',
+    valor: 'text-orange-700 dark:text-orange-300',
+    rotulo: 'text-orange-950/80 dark:text-orange-200/80',
+    detalhe: 'text-orange-900/70 dark:text-orange-300/70',
   },
   emerald: {
     card: 'border-emerald-200/80 dark:border-emerald-500/30 bg-gradient-emerald-soft shadow-glow-emerald/30 hover:shadow-glow-emerald',
@@ -37,18 +37,33 @@ export const kpiStyles: Record<
     detalhe: 'text-rose-700/70 dark:text-rose-300/60',
   },
   sky: {
-    card: 'border-sky-200/80 dark:border-sky-500/30 bg-gradient-sky-soft shadow-glow-sky/30 hover:shadow-glow-sky',
+    card: 'border-slate-300/80 dark:border-navy-secondary/60 bg-gradient-sky-soft shadow-glow-sky/20 hover:shadow-glow-sky',
     chip: 'bg-gradient-sky text-white shadow-glow-sky',
-    valor: 'text-sky-700 dark:text-sky-200',
-    rotulo: 'text-sky-700/80 dark:text-sky-300/70',
-    detalhe: 'text-sky-700/70 dark:text-sky-300/60',
+    valor: 'text-navy-deep dark:text-gold-light',
+    rotulo: 'text-navy-secondary dark:text-slate-300',
+    detalhe: 'text-slate-600 dark:text-slate-400',
   },
   violet: {
-    card: 'border-fuchsia-200/80 dark:border-fuchsia-500/30 bg-gradient-brand-soft shadow-glow-brand/30 hover:shadow-glow-brand',
-    chip: 'bg-gradient-brand text-white shadow-glow-brand',
-    valor: 'text-fuchsia-700 dark:text-fuchsia-200',
-    rotulo: 'text-fuchsia-700/80 dark:text-fuchsia-300/70',
-    detalhe: 'text-fuchsia-700/70 dark:text-fuchsia-300/60',
+    /* Mapeado para Dourado Metálico/Luminoso para manter retrocompatibilidade */
+    card: 'border-gold-metallic/40 dark:border-gold-metallic/35 bg-gradient-gold-soft shadow-glow-gold/25 hover:shadow-glow-gold',
+    chip: 'bg-gradient-gold text-navy-deep font-bold shadow-glow-gold',
+    valor: 'text-gold-dark dark:text-gold-luminous',
+    rotulo: 'text-gold-bronze dark:text-gold-light/85',
+    detalhe: 'text-gold-bronze/80 dark:text-gold-light/65',
+  },
+  gold: {
+    card: 'border-gold-metallic/40 dark:border-gold-metallic/35 bg-gradient-gold-soft shadow-glow-gold/25 hover:shadow-glow-gold',
+    chip: 'bg-gradient-gold text-navy-deep font-bold shadow-glow-gold',
+    valor: 'text-gold-dark dark:text-gold-luminous',
+    rotulo: 'text-gold-bronze dark:text-gold-light/85',
+    detalhe: 'text-gold-bronze/80 dark:text-gold-light/65',
+  },
+  navy: {
+    card: 'border-navy-secondary/40 dark:border-navy-border bg-gradient-sky-soft shadow-glow-sky/20 hover:shadow-glow-sky',
+    chip: 'bg-gradient-sidebar text-white shadow-glow-sky',
+    valor: 'text-navy-deep dark:text-gold-light',
+    rotulo: 'text-navy-secondary dark:text-slate-300',
+    detalhe: 'text-slate-600 dark:text-slate-400',
   },
 }
 

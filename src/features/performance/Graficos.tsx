@@ -16,14 +16,16 @@ import {
 import { LinhaMensal, ProjecaoMensal, RankingImovel } from './calculos'
 import { formatBRL } from '@/services/imobiliario'
 
-/* Gráficos da Performance — Recharts com a identidade violeta/fúcsia. */
+/* Gráficos da Performance — Recharts com a nova identidade institucional (Laranja #F15A24, Dourado #D4A347, Azul-marinho). */
 
-const COR_PRIMARIA = '#7c3aed'
-const COR_FUCHSIA = '#d946ef'
-const COR_EMERALD = '#10b981'
-const COR_ROSE = '#f43f5e'
-const COR_AMBAR = '#f59e0b'
-const COR_SKY = '#0ea5e9'
+const COR_PRIMARIA = '#F15A24' /* Laranja institucional */
+const COR_DOURADO = '#D4A347' /* Dourado metálico */
+const COR_DOURADO_LUM = '#FFD477' /* Dourado luminoso */
+const COR_NAVY = '#102B46' /* Azul-marinho secundário */
+const COR_EMERALD = '#10b981' /* Sucesso */
+const COR_ROSE = '#f43f5e' /* Inadimplência / Urgente */
+const COR_AMBAR = '#f59e0b' /* Atenção */
+const COR_SKY = '#1B456E'
 
 function moedaCompacta(v: number): string {
   if (Math.abs(v) >= 1000) return `R$ ${(v / 1000).toFixed(1).replace('.', ',')}k`
@@ -135,8 +137,8 @@ export function GraficoProjecao({ dados }: { dados: ProjecaoMensal[] }) {
       <ComposedChart data={dados} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="gradReajustado" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={COR_FUCHSIA} stopOpacity={0.5} />
-            <stop offset="100%" stopColor={COR_FUCHSIA} stopOpacity={0.05} />
+            <stop offset="0%" stopColor={COR_DOURADO} stopOpacity={0.55} />
+            <stop offset="100%" stopColor={COR_DOURADO} stopOpacity={0.06} />
           </linearGradient>
         </defs>
         <CartesianGrid
@@ -159,7 +161,7 @@ export function GraficoProjecao({ dados }: { dados: ProjecaoMensal[] }) {
           type="monotone"
           dataKey="reajustado"
           name="Com reajustes aprovados"
-          stroke={COR_FUCHSIA}
+          stroke={COR_DOURADO}
           strokeWidth={2}
           fill="url(#gradReajustado)"
         />
@@ -195,7 +197,7 @@ export function GraficoFaturadoRecebido({ dados }: { dados: LinhaMensal[] }) {
           tickFormatter={(v) => moedaCompacta(Number(v))}
           width={64}
         />
-        <Tooltip content={<TooltipMoeda />} cursor={{ fill: 'rgba(124,58,237,0.06)' }} />
+        <Tooltip content={<TooltipMoeda />} cursor={{ fill: 'rgba(241,90,36,0.06)' }} />
         <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
         <Bar
           dataKey="faturado"
@@ -242,7 +244,7 @@ export function GraficoRentabilidade({ dados }: { dados: RankingImovel[] }) {
           axisLine={false}
           width={140}
         />
-        <Tooltip content={<TooltipMoeda />} cursor={{ fill: 'rgba(124,58,237,0.06)' }} />
+        <Tooltip content={<TooltipMoeda />} cursor={{ fill: 'rgba(241,90,36,0.06)' }} />
         <Bar dataKey="resultado" name="Resultado" radius={[0, 5, 5, 0]} maxBarSize={18}>
           {dados.map((d, i) => (
             <Cell key={i} fill={d.resultado >= 0 ? COR_EMERALD : COR_ROSE} />

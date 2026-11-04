@@ -14,12 +14,12 @@ import {
 import { LinhaFluxoMensal, ItemComposicao, corCategoria } from './fluxo'
 import { formatBRL } from '@/services/imobiliario'
 
-/* Gráficos da Análise de Fluxo de Caixa — Recharts com a identidade violeta/fúcsia. */
+/* Gráficos da Análise de Fluxo de Caixa — Recharts com a nova identidade (Laranja #F15A24, Dourado #D4A347, Azul-marinho #06182B/#102B46). */
 
 const COR_ENTRADAS = '#10b981'
 const COR_SAIDAS = '#f43f5e'
-const COR_SALDO = '#7c3aed'
-const COR_ACUMULADO = '#d946ef'
+const COR_SALDO = '#F15A24' /* Laranja institucional */
+const COR_ACUMULADO = '#D4A347' /* Dourado metálico */
 
 const estiloEixo = { fontSize: 11, fill: 'currentColor' } as const
 
@@ -75,7 +75,7 @@ export function GraficoFluxoMensal({ dados }: { dados: LinhaFluxoMensal[] }) {
           tickFormatter={(v) => moedaCompacta(Number(v))}
           width={64}
         />
-        <Tooltip content={<TooltipFluxo />} cursor={{ fill: 'rgba(124,58,237,0.06)' }} />
+        <Tooltip content={<TooltipFluxo />} cursor={{ fill: 'rgba(241,90,36,0.06)' }} />
         <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
         <Bar
           dataKey="entradas"

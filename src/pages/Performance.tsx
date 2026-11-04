@@ -288,7 +288,7 @@ export default function PerformancePage() {
               detalhe={`Pagas: ${formatBRL(dados.resumo.despesasPagas)}`}
             />
             <CartaoKpi
-              acento="violet"
+              acento="gold"
               icone={<PiggyBank className="w-4 h-4" />}
               rotulo="Resultado"
               valor={formatBRL(dados.resumo.resultado)}
@@ -388,7 +388,7 @@ export default function PerformancePage() {
                   </div>
                   <Badge
                     variant="outline"
-                    className="text-[10px] border-fuchsia-300/50 text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-500/5"
+                    className="text-[10px] border-primary/40 text-primary dark:text-orange-300 bg-primary/5"
                   >
                     Projeção
                   </Badge>
