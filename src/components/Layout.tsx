@@ -26,6 +26,7 @@ import {
   Sparkles,
   ChevronDown,
   Gauge,
+  Waves,
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -56,6 +57,7 @@ const navItems = [
   { path: '/pendencias', label: 'Pendências', icon: AlertTriangle, emoji: '⚠️' },
   { path: '/whatsapp', label: 'WhatsApp / Cobranças', icon: MessageCircle, emoji: '📱' },
   { path: '/performance', label: 'Performance', icon: Gauge, emoji: '🎯' },
+  { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa', icon: Waves, emoji: '💧' },
   { path: '/documentos', label: 'Documentos', icon: FolderOpen, emoji: '📁' },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3, emoji: '📊' },
   { path: '/assistente-ia', label: 'Assistente IA', icon: Bot, emoji: '🤖' },

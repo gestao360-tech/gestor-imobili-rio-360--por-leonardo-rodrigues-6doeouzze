@@ -156,8 +156,13 @@ export function resolverJanela(filtro: FiltroPerformance): {
   }
 }
 
+/** Rótulo curto de competência "YYYY-MM" → "Mmm/AAAA" (reusado pelo fluxo de caixa). */
+export function rotuloDeCompetencia(comp: string): string {
+  return rotuloDe(comp)
+}
+
 /** Lista de competências "YYYY-MM" dentro da janela (1 por mês). */
-function competenciasDaJanela(inicio: string, fim: string): string[] {
+export function competenciasDaJanela(inicio: string, fim: string): string[] {
   const [ai, mi] = inicio.split('-').map(Number)
   const [af, mf] = fim.split('-').map(Number)
   const lista: string[] = []
