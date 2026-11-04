@@ -27,8 +27,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter var', 'SF Pro Display', 'system-ui', 'sans-serif'],
-        display: ['SF Pro Display', 'Inter var', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter var', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'Inter var', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -84,8 +84,10 @@ export default {
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 6px)',
+        xl: 'calc(var(--radius) + 0.25rem)',
+        '2xl': 'calc(var(--radius) + 0.75rem)',
       },
       transitionProperty: {
         width: 'width',
@@ -94,9 +96,24 @@ export default {
       boxShadow: {
         subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
         elevation: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        soft: '0 4px 24px -6px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.06)',
+        lifted: '0 18px 45px -14px rgba(15, 23, 42, 0.22), 0 4px 12px -4px rgba(15, 23, 42, 0.08)',
+      },
+      keyframes: {
+        'scale-in': {
+          from: { transform: 'scale(0.96)', opacity: '0' },
+          to: { transform: 'scale(1)', opacity: '1' },
+        },
+      },
+      animation: {
+        'scale-in': 'scale-in 0.25s cubic-bezier(0.42, 0, 0.58, 1)',
       },
       transitionTimingFunction: {
         apple: 'cubic-bezier(0.42, 0, 0.58, 1)',
+      },
+      transitionDuration: {
+        '250': '250ms',
+        '350': '350ms',
       },
     },
   },

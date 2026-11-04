@@ -18,7 +18,12 @@ import {
   Sparkles,
   ArrowRight,
   CheckSquare,
+  Wallet,
+  CircleDollarSign,
+  Hourglass,
+  CalendarClock,
 } from 'lucide-react'
+import CartaoKpi from '@/components/dashboard/CartaoKpi'
 import {
   fetchDashboardMetrics,
   formatBRL,
@@ -125,20 +130,20 @@ export default function Index() {
   return (
     <div className="space-y-6 pb-12">
       {/* CABEÇALHO DO DASHBOARD COM AÇÕES RÁPIDAS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Visão Geral Executiva
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
+              Visão Geral <span className="text-gradient-brand">Executiva</span>
             </h1>
             <Badge
               variant="outline"
-              className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300"
+              className="bg-gradient-emerald-soft text-emerald-700 dark:text-emerald-300 border-emerald-300/60 font-bold"
             >
               Dados Reais
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Painel consolidado de imóveis próprios e de terceiros com indicadores em tempo real.
           </p>
         </div>
@@ -149,7 +154,7 @@ export default function Index() {
           <Button
             size="sm"
             variant="outline"
-            className="text-xs h-8 gap-1 border-slate-300 dark:border-slate-700"
+            className="text-xs h-8 gap-1 border-border rounded-full"
             onClick={() => navigate('/imoveis?action=novo')}
           >
             <Plus className="w-3.5 h-3.5 text-emerald-600" />+ Novo imóvel
@@ -158,16 +163,16 @@ export default function Index() {
           <Button
             size="sm"
             variant="outline"
-            className="text-xs h-8 gap-1 border-slate-300 dark:border-slate-700"
+            className="text-xs h-8 gap-1 border-border rounded-full"
             onClick={() => navigate('/inquilinos?action=novo')}
           >
-            <Plus className="w-3.5 h-3.5 text-blue-600" />+ Novo inquilino
+            <Plus className="w-3.5 h-3.5 text-sky-600" />+ Novo inquilino
           </Button>
 
           <Button
             size="sm"
             variant="outline"
-            className="text-xs h-8 gap-1 border-slate-300 dark:border-slate-700"
+            className="text-xs h-8 gap-1 border-border rounded-full"
             onClick={() => navigate('/contratos?action=novo')}
           >
             <Plus className="w-3.5 h-3.5 text-indigo-600" />+ Novo contrato
@@ -175,7 +180,7 @@ export default function Index() {
 
           <Button
             size="sm"
-            className="text-xs h-8 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="text-xs h-8 gap-1 text-white rounded-full"
             onClick={() => navigate('/financeiro?action=pagamento')}
           >
             <DollarSign className="w-3.5 h-3.5" />+ Registrar pagamento
@@ -184,7 +189,7 @@ export default function Index() {
           <Button
             size="sm"
             variant="outline"
-            className="text-xs h-8 gap-1 border-rose-300 text-rose-700 dark:border-rose-900 dark:text-rose-300"
+            className="text-xs h-8 gap-1 border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-300 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/40"
             onClick={() => navigate('/pendencias?action=novo')}
           >
             <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />+ Nova pendência
@@ -193,10 +198,10 @@ export default function Index() {
           <Button
             size="sm"
             variant="outline"
-            className="text-xs h-8 gap-1 border-slate-300 dark:border-slate-700"
+            className="text-xs h-8 gap-1 border-border rounded-full"
             onClick={() => navigate('/configuracoes')}
           >
-            <Upload className="w-3.5 h-3.5 text-purple-600" />
+            <Upload className="w-3.5 h-3.5 text-fuchsia-600" />
             Importar planilha
           </Button>
         </div>
@@ -206,115 +211,81 @@ export default function Index() {
           RECEITA MENSAL / VALORES RECEBIDOS / VALORES PENDENTES / CONTRATOS A VENCER / REAJUSTES PRÓXIMOS / IMÓVEIS DISPONÍVEIS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* 1. RECEITA MENSAL */}
-        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:border-slate-300 transition-colors">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              RECEITA MENSAL
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
-              {metrics ? formatBRL(metrics.receitaMensalContratada) : '...'}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-              <span className="text-emerald-600 font-medium">Contratada</span> •{' '}
-              {metrics?.contratosAtivos ?? 0} contratos
-            </div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="brand"
+          icone={<Wallet className="w-4 h-4" />}
+          rotulo="Receita mensal"
+          valor={metrics ? formatBRL(metrics.receitaMensalContratada) : '...'}
+          detalhe={
+            <>
+              <span className="font-bold">Contratada</span> • {metrics?.contratosAtivos ?? 0}{' '}
+              contratos
+            </>
+          }
+        />
 
         {/* 2. VALORES RECEBIDOS */}
-        <Card className="border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-sm">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-emerald-700 dark:text-emerald-400 uppercase">
-              VALORES RECEBIDOS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-300 tracking-tight">
-              {metrics ? formatBRL(metrics.receitaRecebidaMes) : '...'}
-            </div>
-            <div className="text-[10px] text-emerald-600/80 mt-1">
-              Efetivamente no caixa este mês
-            </div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="emerald"
+          icone={<CircleDollarSign className="w-4 h-4" />}
+          rotulo="Valores recebidos"
+          valor={metrics ? formatBRL(metrics.receitaRecebidaMes) : '...'}
+          detalhe="Efetivamente no caixa este mês"
+        />
 
         {/* 3. VALORES PENDENTES */}
-        <Card className="border-amber-200 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 shadow-sm">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-amber-700 dark:text-amber-400 uppercase">
-              VALORES PENDENTES
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300 tracking-tight">
-              {metrics ? formatBRL(metrics.valoresPendentes) : '...'}
-            </div>
-            <div className="text-[10px] text-amber-600/80 mt-1">A vencer ou parciais em aberto</div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="amber"
+          icone={<Hourglass className="w-4 h-4" />}
+          rotulo="Valores pendentes"
+          valor={metrics ? formatBRL(metrics.valoresPendentes) : '...'}
+          detalhe="A vencer ou parciais em aberto"
+        />
 
         {/* 4. CONTRATOS A VENCER */}
-        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              CONTRATOS A VENCER
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
-              {metrics
-                ? `${String(metrics.contratosProximosVencimento).padStart(2, '0')} contratos`
-                : '...'}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-1">Próximos 90 dias</div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="violet"
+          icone={<CalendarClock className="w-4 h-4" />}
+          rotulo="Contratos a vencer"
+          valor={
+            metrics
+              ? `${String(metrics.contratosProximosVencimento).padStart(2, '0')} contratos`
+              : '...'
+          }
+          detalhe="Próximos 90 dias"
+        />
 
         {/* 5. REAJUSTES PRÓXIMOS */}
-        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              REAJUSTES PRÓXIMOS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
-              {metrics ? `${String(metrics.reajustesPrevistos).padStart(2, '0')} imóveis` : '...'}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-1">Data-base programada</div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="sky"
+          icone={<TrendingUp className="w-4 h-4" />}
+          rotulo="Reajustes próximos"
+          valor={metrics ? `${String(metrics.reajustesPrevistos).padStart(2, '0')} imóveis` : '...'}
+          detalhe="Data-base programada"
+        />
 
         {/* 6. IMÓVEIS DISPONÍVEIS */}
-        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-          <CardHeader className="p-3.5 pb-1">
-            <CardTitle className="text-[11px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              IMÓVEIS DISPONÍVEIS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
-              {metrics ? `${String(metrics.imoveisDisponiveis).padStart(2, '0')} imóveis` : '...'}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-1">Prontos para locação</div>
-          </CardContent>
-        </Card>
+        <CartaoKpi
+          acento="rose"
+          icone={<Building className="w-4 h-4" />}
+          rotulo="Imóveis disponíveis"
+          valor={metrics ? `${String(metrics.imoveisDisponiveis).padStart(2, '0')} imóveis` : '...'}
+          detalhe="Prontos para locação"
+        />
       </div>
 
       {/* PAINEL DIFERENCIAL "O QUE PRECISA DA MINHA ATENÇÃO?" */}
-      <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-        <div className="bg-slate-900 text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800">
+      <Card className="overflow-hidden">
+        <div className="bg-gradient-rose text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-rose-600/90 flex items-center justify-center text-white">
+            <div className="w-9 h-9 rounded-xl bg-white/15 ring-1 ring-white/30 flex items-center justify-center text-white backdrop-blur-sm">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+              <h2 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
                 O QUE PRECISA DA MINHA ATENÇÃO?
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-rose-50/90">
                 Central executiva de decisões: resolva ocorrências, atribua responsáveis e arquive
                 providências.
               </p>
@@ -323,7 +294,7 @@ export default function Index() {
           <Button
             size="sm"
             variant="outline"
-            className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs h-8 gap-1.5"
+            className="border-white/40 text-white hover:bg-white/15 text-xs h-8 gap-1.5 rounded-full"
             onClick={() => navigate('/pendencias')}
           >
             <span>
@@ -335,7 +306,7 @@ export default function Index() {
 
         <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* SEÇÃO URGENTE (🔴) */}
-          <div className="border border-rose-200 dark:border-rose-950/80 rounded-lg p-3 bg-rose-50/30 dark:bg-rose-950/10 flex flex-col">
+          <div className="border border-rose-200/80 dark:border-rose-500/30 rounded-xl p-3 bg-gradient-rose-soft dark:bg-rose-950/20 flex flex-col">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-rose-200 dark:border-rose-900/60">
               <div className="flex items-center gap-1.5 font-bold text-xs text-rose-700 dark:text-rose-400 uppercase tracking-wider">
                 <span>🔴</span>
@@ -348,27 +319,29 @@ export default function Index() {
 
             <div className="space-y-2.5 flex-1 overflow-y-auto max-h-72">
               {urgentes.length === 0 ? (
-                <div className="text-xs text-slate-500 py-4 text-center">
+                <div className="text-xs text-muted-foreground py-4 text-center">
                   Nenhuma urgência pendente.
                 </div>
               ) : (
                 urgentes.map((item) => (
                   <div
                     key={item.id}
-                    className="p-2.5 bg-white dark:bg-slate-800 rounded border border-rose-200 dark:border-slate-700 shadow-2xs hover:border-rose-400 transition-colors"
+                    className="p-2.5 bg-white dark:bg-slate-800/80 rounded-xl border border-rose-200/70 dark:border-rose-500/25 shadow-2xs hover:border-rose-400 hover:shadow-soft transition-all duration-200"
                   >
-                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 leading-snug">
+                    <div className="font-semibold text-xs text-foreground leading-snug">
                       {item.titulo}
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                    <div className="text-[11px] text-foreground/70 mt-1 line-clamp-2">
                       {item.descricao}
                     </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-500">Prazo: {item.prazo}</span>
+                    <div className="mt-2 pt-2 border-t border-rose-200/60 dark:border-rose-500/20 flex items-center justify-between text-[10px]">
+                      <span className="text-rose-700/70 dark:text-rose-300/70">
+                        Prazo: {item.prazo}
+                      </span>
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-6 px-2 text-[10px] bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200"
+                        className="h-6 px-2 text-[10px] bg-rose-500 text-white shadow-md shadow-rose-500/30 hover:bg-rose-600 dark:bg-rose-600"
                         onClick={() => {
                           setSelectedPendencia(item)
                           setSolucaoTexto('')
@@ -384,7 +357,7 @@ export default function Index() {
           </div>
 
           {/* SEÇÃO PRÓXIMAS PROVIDÊNCIAS (🟠) */}
-          <div className="border border-orange-200 dark:border-orange-950/80 rounded-lg p-3 bg-orange-50/30 dark:bg-orange-950/10 flex flex-col">
+          <div className="border border-orange-200/80 dark:border-orange-500/30 rounded-xl p-3 bg-orange-50/60 dark:bg-orange-950/20 flex flex-col">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-orange-200 dark:border-orange-900/60">
               <div className="flex items-center gap-1.5 font-bold text-xs text-orange-700 dark:text-orange-400 uppercase tracking-wider">
                 <span>🟠</span>
@@ -400,27 +373,29 @@ export default function Index() {
 
             <div className="space-y-2.5 flex-1 overflow-y-auto max-h-72">
               {proximas.length === 0 ? (
-                <div className="text-xs text-slate-500 py-4 text-center">
+                <div className="text-xs text-muted-foreground py-4 text-center">
                   Nenhuma providência imediata pendente.
                 </div>
               ) : (
                 proximas.map((item) => (
                   <div
                     key={item.id}
-                    className="p-2.5 bg-white dark:bg-slate-800 rounded border border-orange-200 dark:border-slate-700 shadow-2xs hover:border-orange-400 transition-colors"
+                    className="p-2.5 bg-white dark:bg-slate-800/80 rounded-xl border border-orange-200/70 dark:border-orange-500/25 shadow-2xs hover:border-orange-400 hover:shadow-soft transition-all duration-200"
                   >
-                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 leading-snug">
+                    <div className="font-semibold text-xs text-foreground leading-snug">
                       {item.titulo}
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                    <div className="text-[11px] text-foreground/70 mt-1 line-clamp-2">
                       {item.descricao}
                     </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-500">Resp: {item.responsavel}</span>
+                    <div className="mt-2 pt-2 border-t border-orange-200/60 dark:border-orange-500/20 flex items-center justify-between text-[10px]">
+                      <span className="text-orange-700/70 dark:text-orange-300/70">
+                        Resp: {item.responsavel}
+                      </span>
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-6 px-2 text-[10px] bg-orange-100 hover:bg-orange-200 text-orange-800 dark:bg-orange-900/60 dark:text-orange-200"
+                        className="h-6 px-2 text-[10px] bg-orange-500 text-white shadow-md shadow-orange-500/30 hover:bg-orange-600 dark:bg-orange-600"
                         onClick={() => {
                           setSelectedPendencia(item)
                           setSolucaoTexto('')
@@ -436,7 +411,7 @@ export default function Index() {
           </div>
 
           {/* SEÇÃO ACOMPANHAMENTO (🟡) */}
-          <div className="border border-amber-200 dark:border-amber-950/80 rounded-lg p-3 bg-amber-50/30 dark:bg-amber-950/10 flex flex-col">
+          <div className="border border-amber-200/80 dark:border-amber-500/30 rounded-xl p-3 bg-gradient-amber-soft dark:bg-amber-950/20 flex flex-col">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-200 dark:border-amber-900/60">
               <div className="flex items-center gap-1.5 font-bold text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wider">
                 <span>🟡</span>
@@ -452,27 +427,29 @@ export default function Index() {
 
             <div className="space-y-2.5 flex-1 overflow-y-auto max-h-72">
               {acompanhamento.length === 0 ? (
-                <div className="text-xs text-slate-500 py-4 text-center">
+                <div className="text-xs text-muted-foreground py-4 text-center">
                   Nenhum acompanhamento pendente.
                 </div>
               ) : (
                 acompanhamento.map((item) => (
                   <div
                     key={item.id}
-                    className="p-2.5 bg-white dark:bg-slate-800 rounded border border-amber-200 dark:border-slate-700 shadow-2xs hover:border-amber-400 transition-colors"
+                    className="p-2.5 bg-white dark:bg-slate-800/80 rounded-xl border border-amber-200/70 dark:border-amber-500/25 shadow-2xs hover:border-amber-400 hover:shadow-soft transition-all duration-200"
                   >
-                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 leading-snug">
+                    <div className="font-semibold text-xs text-foreground leading-snug">
                       {item.titulo}
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                    <div className="text-[11px] text-foreground/70 mt-1 line-clamp-2">
                       {item.descricao}
                     </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-500">Prazo: {item.prazo}</span>
+                    <div className="mt-2 pt-2 border-t border-amber-200/60 dark:border-amber-500/20 flex items-center justify-between text-[10px]">
+                      <span className="text-amber-700/70 dark:text-amber-300/70">
+                        Prazo: {item.prazo}
+                      </span>
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-6 px-2 text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+                        className="h-6 px-2 text-[10px] bg-amber-400 text-white shadow-md shadow-amber-400/30 hover:bg-amber-500 dark:bg-amber-500"
                         onClick={() => {
                           setSelectedPendencia(item)
                           setSolucaoTexto('')
@@ -492,117 +469,134 @@ export default function Index() {
       {/* DEMAIS INDICADORES EXECUTIVOS (COMPLETANDO OS 17 OBRIGATÓRIOS DO BRIEFING) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* 7. Total de imóveis */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">1. TOTAL IMÓVEIS</div>
-          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+        <div className="p-3 rounded-xl border border-violet-200/70 dark:border-violet-500/25 bg-gradient-brand-soft">
+          <div className="text-[10px] font-extrabold text-violet-700/80 dark:text-violet-300/70 uppercase tracking-wider">
+            1. Total imóveis
+          </div>
+          <div className="text-base font-extrabold text-violet-700 dark:text-violet-200 mt-0.5">
             {metrics?.totalImoveis ?? 0}
           </div>
-          <div className="text-[10px] text-slate-400">cadastrados</div>
+          <div className="text-[10px] text-violet-700/60 dark:text-violet-300/50">cadastrados</div>
         </div>
 
         {/* 8. Imóveis alugados */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            2. IMÓVEIS ALUGADOS
+        <div className="p-3 rounded-xl border border-emerald-200/70 dark:border-emerald-500/25 bg-gradient-emerald-soft">
+          <div className="text-[10px] font-extrabold text-emerald-700/80 dark:text-emerald-300/70 uppercase tracking-wider">
+            2. Imóveis alugados
           </div>
-          <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-200 mt-0.5">
             {metrics?.imoveisAlugados ?? 0}
           </div>
-          <div className="text-[10px] text-slate-400">com contrato ativo</div>
+          <div className="text-[10px] text-emerald-700/60 dark:text-emerald-300/50">
+            com contrato ativo
+          </div>
         </div>
 
         {/* 9. Taxa de ocupação */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            14. TAXA OCUPAÇÃO
+        <div className="p-3 rounded-xl border border-sky-200/70 dark:border-sky-500/25 bg-gradient-sky-soft">
+          <div className="text-[10px] font-extrabold text-sky-700/80 dark:text-sky-300/70 uppercase tracking-wider">
+            14. Taxa ocupação
           </div>
-          <div className="text-base font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+          <div className="text-base font-extrabold text-sky-700 dark:text-sky-200 mt-0.5">
             {metrics ? `${metrics.taxaOcupacao}%` : '0%'}
           </div>
-          <div className="text-[10px] text-slate-400">da carteira física</div>
+          <div className="text-[10px] text-sky-700/60 dark:text-sky-300/50">da carteira física</div>
         </div>
 
         {/* 10. % Inadimplência */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            15. % INADIMPLÊNCIA
+        <div className="p-3 rounded-xl border border-rose-200/70 dark:border-rose-500/25 bg-gradient-rose-soft">
+          <div className="text-[10px] font-extrabold text-rose-700/80 dark:text-rose-300/70 uppercase tracking-wider">
+            15. % Inadimplência
           </div>
-          <div className="text-base font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+          <div className="text-base font-extrabold text-rose-700 dark:text-rose-200 mt-0.5">
             {metrics ? `${metrics.percentualInadimplencia}%` : '0%'}
           </div>
-          <div className="text-[10px] text-slate-400">
+          <div className="text-[10px] text-rose-700/60 dark:text-rose-300/50">
             {formatBRL(metrics?.valoresVencidosInadimplentes)} vencidos
           </div>
         </div>
 
         {/* 11. Receita anual acumulada */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            10. RECEITA ANUAL
+        <div className="p-3 rounded-xl border border-fuchsia-200/70 dark:border-fuchsia-500/25 bg-gradient-brand-soft">
+          <div className="text-[10px] font-extrabold text-fuchsia-700/80 dark:text-fuchsia-300/70 uppercase tracking-wider">
+            10. Receita anual
           </div>
-          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+          <div className="text-base font-extrabold text-fuchsia-700 dark:text-fuchsia-200 mt-0.5">
             {metrics ? formatBRL(metrics.receitaAnualAcumulada) : '...'}
           </div>
-          <div className="text-[10px] text-slate-400">acumulado do ano</div>
+          <div className="text-[10px] text-fuchsia-700/60 dark:text-fuchsia-300/50">
+            acumulado do ano
+          </div>
         </div>
 
         {/* 12. Previsão 12 meses */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">11. PREVISÃO 12M</div>
-          <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+        <div className="p-3 rounded-xl border border-emerald-200/70 dark:border-emerald-500/25 bg-gradient-emerald-soft">
+          <div className="text-[10px] font-extrabold text-emerald-700/80 dark:text-emerald-300/70 uppercase tracking-wider">
+            11. Previsão 12m
+          </div>
+          <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-200 mt-0.5">
             {metrics ? formatBRL(metrics.previsaoReceita12Meses) : '...'}
           </div>
-          <div className="text-[10px] text-slate-400">projeção contratada</div>
+          <div className="text-[10px] text-emerald-700/60 dark:text-emerald-300/50">
+            projeção contratada
+          </div>
         </div>
 
         {/* 13. Total garantias / cauções */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            16. GARANTIAS / CAUÇÕES
+        <div className="p-3 rounded-xl border border-indigo-200/70 dark:border-indigo-500/25 bg-gradient-sky-soft">
+          <div className="text-[10px] font-extrabold text-indigo-700/80 dark:text-indigo-300/70 uppercase tracking-wider">
+            16. Garantias / cauções
           </div>
-          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+          <div className="text-base font-extrabold text-indigo-700 dark:text-indigo-200 mt-0.5">
             {metrics ? formatBRL(metrics.totalGarantiasCaucoes) : '...'}
           </div>
-          <div className="text-[10px] text-slate-400">em custódia/vigência</div>
+          <div className="text-[10px] text-indigo-700/60 dark:text-indigo-300/50">
+            em custódia/vigência
+          </div>
         </div>
 
         {/* 14. Renovações pendentes */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            13. RENOVAÇÕES PEND.
+        <div className="p-3 rounded-xl border border-orange-200/70 dark:border-orange-500/25 bg-gradient-amber-soft">
+          <div className="text-[10px] font-extrabold text-orange-700/80 dark:text-orange-300/70 uppercase tracking-wider">
+            13. Renovações pend.
           </div>
-          <div className="text-base font-bold text-orange-600 dark:text-orange-400 mt-0.5">
+          <div className="text-base font-extrabold text-orange-700 dark:text-orange-200 mt-0.5">
             {metrics?.renovacoesPendentes ?? 0}
           </div>
-          <div className="text-[10px] text-slate-400">em negociação</div>
+          <div className="text-[10px] text-orange-700/60 dark:text-orange-300/50">
+            em negociação
+          </div>
         </div>
 
         {/* 15. Pendências administrativas */}
-        <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase">
-            17. PENDÊNCIAS ADM
+        <div className="p-3 rounded-xl border border-rose-200/70 dark:border-rose-500/25 bg-gradient-rose-soft">
+          <div className="text-[10px] font-extrabold text-rose-700/80 dark:text-rose-300/70 uppercase tracking-wider">
+            17. Pendências adm
           </div>
-          <div className="text-base font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+          <div className="text-base font-extrabold text-rose-700 dark:text-rose-200 mt-0.5">
             {metrics?.pendenciasAdministrativas ?? 0}
           </div>
-          <div className="text-[10px] text-slate-400">a resolver</div>
+          <div className="text-[10px] text-rose-700/60 dark:text-rose-300/50">a resolver</div>
         </div>
       </div>
 
       {/* GRÁFICOS E FLUXO VISUAL DE RECEBIMENTOS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gráfico 1: Evolução Mensal dos Recebimentos e Inadimplência */}
-        <Card className="lg:col-span-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <CardHeader className="p-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
+        <Card className="lg:col-span-2">
+          <CardHeader className="p-4 pb-2 border-b border-border/70 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <CardTitle className="text-sm font-bold text-foreground">
                 Evolução Mensal: Faturado vs. Recebido vs. Inadimplência
               </CardTitle>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Comparativo real de valores das competências (Regra: faturado ≠ recebido)
               </p>
             </div>
-            <Badge variant="outline" className="text-xs">
+            <Badge
+              variant="outline"
+              className="text-xs bg-gradient-brand-soft text-violet-700 dark:text-violet-200 border-violet-200 dark:border-violet-500/40"
+            >
               2º Semestre 2026
             </Badge>
           </CardHeader>
@@ -628,25 +622,23 @@ export default function Index() {
                 return (
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {row.mes}
-                      </span>
-                      <span className="text-slate-500">
+                      <span className="font-medium text-foreground/90">{row.mes}</span>
+                      <span className="text-muted-foreground">
                         Recebido:{' '}
                         <strong className="text-emerald-600">{formatBRL(row.recebido)}</strong> |
                         Pend/Atraso:{' '}
                         <strong className="text-rose-600">{formatBRL(row.atraso)}</strong>
                       </span>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden flex shadow-inner">
                       <div
                         style={{ width: `${pctRecebido}%` }}
-                        className="bg-emerald-500 h-full rounded-l-full transition-all duration-500"
+                        className="bg-gradient-emerald h-full rounded-l-full transition-all duration-500"
                         title={`Recebido: ${formatBRL(row.recebido)}`}
                       />
                       <div
                         style={{ width: `${pctAtraso}%` }}
-                        className="bg-rose-500 h-full transition-all duration-500"
+                        className="bg-gradient-rose h-full transition-all duration-500"
                         title={`Atraso: ${formatBRL(row.atraso)}`}
                       />
                     </div>
@@ -655,61 +647,64 @@ export default function Index() {
               })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="mt-4 pt-3 border-t border-border/70 flex items-center justify-between text-[11px] text-muted-foreground">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-gradient-emerald shadow-glow-emerald/60" />
                   Recebido efetivo
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-gradient-rose shadow-glow-rose/60" />
                   Atraso / Inadimplência
                 </span>
               </div>
-              <span className="text-slate-400">Total Faturado no mês: {formatBRL(17946.8)}</span>
+              <span className="text-muted-foreground/70">
+                Total Faturado no mês: {formatBRL(17946.8)}
+              </span>
             </div>
           </CardContent>
         </Card>
 
         {/* Card 2: Resumo Rápido da Carteira e Atalho Assistente IA */}
-        <Card className="border-slate-200 dark:border-slate-800 bg-linear-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 flex flex-col justify-between">
+        <Card className="bg-gradient-brand-soft flex flex-col justify-between">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
+            <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+              <Sparkles className="w-4 h-4 text-fuchsia-600" />
               <span>Resumo Gerencial Semanal</span>
             </CardTitle>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Consolidado para tomada de decisões administrativas imediatas.
             </p>
           </CardHeader>
           <CardContent className="p-4 space-y-3 text-xs">
-            <div className="p-2.5 rounded bg-slate-100 dark:bg-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400">Total recebido na semana</span>
+            <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 flex items-center justify-between shadow-2xs">
+              <span className="text-muted-foreground">Total recebido na semana</span>
               <span className="font-bold text-emerald-600">{formatBRL(4800)}</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-100 dark:bg-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400">Aluguéis em atraso crítico</span>
+            <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 flex items-center justify-between shadow-2xs">
+              <span className="text-muted-foreground">Aluguéis em atraso crítico</span>
               <span className="font-bold text-rose-600">1 contrato (Loja 03)</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-100 dark:bg-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400">Reajustes a confirmar</span>
+            <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 flex items-center justify-between shadow-2xs">
+              <span className="text-muted-foreground">Reajustes a confirmar</span>
               <span className="font-bold text-amber-600">1 (Loja 02 — IPCA)</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-100 dark:bg-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400">Contratos para renovação</span>
+            <div className="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 flex items-center justify-between shadow-2xs">
+              <span className="text-muted-foreground">Contratos para renovação</span>
               <span className="font-bold text-indigo-600">1 (Sala 01 — 45 dias)</span>
             </div>
 
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-800 mt-2">
-              <div className="font-semibold text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-1.5 mb-1">
+            <div className="p-3 bg-gradient-brand rounded-xl mt-2 shadow-glow-brand">
+              <div className="font-semibold text-white text-xs flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>Pergunte ao Assistente IA</span>
               </div>
-              <p className="text-[11px] text-emerald-700 dark:text-emerald-300 leading-relaxed mb-2">
+              <p className="text-[11px] text-white/90 leading-relaxed mb-2">
                 "Quanto tenho para receber neste mês?" ou "Quais inquilinos estão inadimplentes?"
               </p>
               <Button
                 size="sm"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-7 gap-1"
+                className="w-full bg-white text-violet-700 hover:bg-white/90 text-xs h-7 gap-1 font-bold shadow-md"
                 onClick={() => navigate('/assistente-ia')}
               >
                 Abrir Assistente de Gestão 360
@@ -733,12 +728,10 @@ export default function Index() {
           </DialogHeader>
           {selectedPendencia && (
             <div className="space-y-3 text-xs">
-              <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                <div className="font-semibold text-slate-900 dark:text-slate-100">
-                  {selectedPendencia.titulo}
-                </div>
-                <div className="text-slate-500 mt-1">{selectedPendencia.descricao}</div>
-                <div className="mt-2 text-[11px] text-slate-400">
+              <div className="p-2.5 bg-muted/60 rounded-xl border border-border">
+                <div className="font-semibold text-foreground">{selectedPendencia.titulo}</div>
+                <div className="text-muted-foreground mt-1">{selectedPendencia.descricao}</div>
+                <div className="mt-2 text-[11px] text-muted-foreground/80">
                   Responsável: <strong>{selectedPendencia.responsavel}</strong> • Prazo:{' '}
                   <strong>{selectedPendencia.prazo}</strong>
                 </div>
@@ -772,7 +765,7 @@ export default function Index() {
               size="sm"
               onClick={handleResolverPendencia}
               disabled={resolvendo}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
+              className="text-xs"
             >
               {resolvendo ? 'Salvando...' : 'Concluir e Arquivar Alerta'}
             </Button>
