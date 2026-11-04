@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T19:37:09.125Z",
+  "generatedAt": "2026-11-04T20:08:01.660Z",
   "collections": [
     {
       "name": "users",
@@ -1256,13 +1256,20 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "link_pagamento",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE INDEX idx_cob_contrato ON cobrancas (contrato)",
         "CREATE INDEX idx_cob_venc ON cobrancas (vencimento)",
         "CREATE INDEX idx_cob_status ON cobrancas (status)",
-        "CREATE INDEX idx_cob_comp ON cobrancas (competencia)"
+        "CREATE INDEX idx_cob_comp ON cobrancas (competencia)",
+        "CREATE INDEX `idx_cob_link_pagamento` ON `cobrancas` (link_pagamento)"
       ]
     },
     {
@@ -2359,6 +2366,12 @@
         {
           "name": "mensagem_enviada",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "link_incluido",
+          "type": "bool",
           "required": false,
           "system": false
         }
