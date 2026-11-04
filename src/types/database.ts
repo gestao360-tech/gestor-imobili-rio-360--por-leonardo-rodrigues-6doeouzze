@@ -117,6 +117,9 @@ export interface ContratoModel {
   clausulas_especiais?: string
   observacoes_juridicas?: string
   arquivo_contrato?: string[]
+  data_distrato?: string
+  motivo_distrato?: string
+  entrega_chaves_data?: string
   matricula_copasa?: string
   instalacao_cemig?: string
   status:

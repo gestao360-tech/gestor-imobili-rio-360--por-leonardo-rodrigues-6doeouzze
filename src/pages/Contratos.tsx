@@ -23,10 +23,26 @@ import {
   deleteContrato,
   getImoveis,
   getInquilinos,
+  getCobrancas,
+  getRenovacoes,
+  getPendencias,
   formatBRL,
   formatDateBR,
 } from '@/services/imobiliario'
-import { ContratoModel, ImovelModel, InquilinoModel } from '@/types/database'
+import {
+  CobrancaModel,
+  ContratoModel,
+  ImovelModel,
+  InquilinoModel,
+  PendenciaModel,
+  RenovacaoModel,
+} from '@/types/database'
+import FichaContrato from '@/features/contratos/FichaContrato'
+import {
+  badgeSituacaoFinanceira,
+  situacaoFinanceiraContrato,
+  statusRenovacaoContrato,
+} from '@/features/contratos/ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -48,8 +64,13 @@ export default function ContratosPage() {
   const [contratos, setContratos] = useState<ContratoModel[]>([])
   const [imoveis, setImoveis] = useState<ImovelModel[]>([])
   const [inquilinos, setInquilinos] = useState<InquilinoModel[]>([])
+  const [cobrancas, setCobrancas] = useState<CobrancaModel[]>([])
+  const [renovacoes, setRenovacoes] = useState<RenovacaoModel[]>([])
+  const [pendencias, setPendencias] = useState<PendenciaModel[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filtroSemDocumento, setFiltroSemDocumento] = useState(false)
+  const [filtroSemGarantia, setFiltroSemGarantia] = useState(false)
 
   // Modais
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -69,14 +90,20 @@ export default function ContratosPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [contList, imovList, inqList] = await Promise.all([
+      const [contList, imovList, inqList, cobList, renList, pendList] = await Promise.all([
         getContratos(),
         getImoveis(),
         getInquilinos(),
+        getCobrancas(),
+        getRenovacoes(),
+        getPendencias(),
       ])
       setContratos(contList)
       setImoveis(imovList)
       setInquilinos(inqList)
+      setCobrancas(cobList)
+      setRenovacoes(renList)
+      setPendencias(pendList)
     } catch (err) {
       toast({
         title: 'Erro ao carregar',
@@ -173,6 +200,15 @@ export default function ContratosPage() {
     }
   }
 
+  const proximoVencimento = (cobs: CobrancaModel[]): string | null => {
+    const hojeISO = new Date().toISOString().split('T')[0]
+    const aberta = cobs
+      .filter((cb) => cb.status !== 'cancelado' && cb.status !== 'pago')
+      .sort((a, b) => (a.vencimento < b.vencimento ? -1 : 1))
+    const futura = aberta.find((cb) => cb.vencimento >= hojeISO)
+    return futura ? formatDateBR(futura.vencimento) : null
+  }
+
   const statusBadge = (st: string) => {
     switch (st) {
       case 'ativo':
@@ -192,13 +228,32 @@ export default function ContratosPage() {
     }
   }
 
+  const contratosSemDocumento = new Set<string>()
+  const contratosComDocumento = new Set<string>()
+  contratos.forEach((c) => {
+    if (c.arquivo_contrato?.length) contratosComDocumento.add(c.id)
+  })
+  const contratosSemGarantia = new Set(
+    contratos
+      .filter((c) => !c.garantia_tipo || c.garantia_tipo === 'sem_garantia')
+      .map((c) => c.id),
+  )
+
   const filtered = contratos.filter((c) => {
     const num = c.numero.toLowerCase()
     const imovNome = c.expand?.imovel?.nome?.toLowerCase() || ''
     const inqNome = c.expand?.inquilino?.nome?.toLowerCase() || ''
     const q = search.toLowerCase()
-    return num.includes(q) || imovNome.includes(q) || inqNome.includes(q)
+    const casaBusca = num.includes(q) || imovNome.includes(q) || inqNome.includes(q)
+    if (!casaBusca) return false
+    if (filtroSemDocumento && contratosComDocumento.has(c.id)) return false
+    if (filtroSemGarantia && !contratosSemGarantia.has(c.id)) return false
+    return true
   })
+
+  const contratosAtivos = contratos.filter(
+    (c) => c.status !== 'distratado' && c.status !== 'encerrado',
+  )
 
   return (
     <div className="space-y-6">
@@ -241,7 +296,7 @@ export default function ContratosPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-700 text-slate-400 text-[10px] uppercase">
+              <tr className="border-b border-violet-500/30 text-violet-200/70 text-[10px] uppercase">
                 <th className="pb-2 font-semibold">Imóvel</th>
                 <th className="pb-2 font-semibold">Inquilino</th>
                 <th className="pb-2 font-semibold">Aluguel Atual</th>
@@ -249,52 +304,89 @@ export default function ContratosPage() {
                 <th className="pb-2 font-semibold">Término</th>
                 <th className="pb-2 font-semibold">Próx. Reajuste</th>
                 <th className="pb-2 font-semibold">Índice</th>
+                <th className="pb-2 font-semibold">Próx. Vencimento</th>
                 <th className="pb-2 font-semibold">Situação Financeira</th>
                 <th className="pb-2 font-semibold">Renovação</th>
                 <th className="pb-2 font-semibold">Garantia</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
-              {contratos.map((c) => (
-                <tr key={`lt-${c.id}`} className="hover:bg-slate-800/40">
-                  <td className="py-2.5 font-medium">{c.expand?.imovel?.nome || c.imovel}</td>
-                  <td className="py-2.5">{c.expand?.inquilino?.nome || c.inquilino}</td>
-                  <td className="py-2.5 font-bold text-emerald-400">{formatBRL(c.valor_atual)}</td>
-                  <td className="py-2.5 text-slate-400">{formatDateBR(c.data_inicio)}</td>
-                  <td className="py-2.5 text-slate-400">{formatDateBR(c.data_fim)}</td>
-                  <td className="py-2.5 text-amber-300 font-medium">
-                    {formatDateBR(c.data_base_reajuste)}
-                  </td>
-                  <td className="py-2.5 font-mono">{c.indice_reajuste}</td>
-                  <td className="py-2.5">
-                    {c.numero === 'CTR-2025-003' ? (
-                      <span className="text-rose-400 font-semibold">🔴 Em atraso</span>
-                    ) : (
-                      <span className="text-emerald-400 font-semibold">🟢 Em dia</span>
-                    )}
-                  </td>
-                  <td className="py-2.5">
-                    {c.numero === 'CTR-2025-001' ? (
-                      <Badge
-                        variant="outline"
-                        className="border-amber-500 text-amber-300 text-[10px]"
+            <tbody className="divide-y divide-violet-500/15 text-slate-200">
+              {contratosAtivos.map((c) => {
+                const sit = situacaoFinanceiraContrato(
+                  cobrancas.filter((cb) => cb.contrato === c.id),
+                )
+                const renov = statusRenovacaoContrato(renovacoes.filter((r) => r.contrato === c.id))
+                const proximaVenc = proximoVencimento(
+                  cobrancas.filter((cb) => cb.contrato === c.id),
+                )
+                return (
+                  <tr
+                    key={`lt-${c.id}`}
+                    className="hover:bg-violet-500/10 cursor-pointer"
+                    onClick={() => setDetalheContrato(c)}
+                  >
+                    <td className="py-2.5 font-medium">{c.expand?.imovel?.nome || c.imovel}</td>
+                    <td className="py-2.5">{c.expand?.inquilino?.nome || c.inquilino}</td>
+                    <td className="py-2.5 font-bold text-fuchsia-300">
+                      {formatBRL(c.valor_atual)}
+                    </td>
+                    <td className="py-2.5 text-slate-400">{formatDateBR(c.data_inicio)}</td>
+                    <td className="py-2.5 text-slate-400">{formatDateBR(c.data_fim)}</td>
+                    <td className="py-2.5 text-amber-300 font-medium">
+                      {formatDateBR(c.data_base_reajuste)}
+                    </td>
+                    <td className="py-2.5 font-mono">{c.indice_reajuste}</td>
+                    <td className="py-2.5 text-slate-400">
+                      {proximaVenc || `Dia ${c.dia_vencimento}`}
+                    </td>
+                    <td className="py-2.5">
+                      <span
+                        className={
+                          sit === 'inadimplente'
+                            ? 'text-rose-400 font-semibold'
+                            : sit === 'em_aberto'
+                              ? 'text-amber-300 font-semibold'
+                              : sit === 'em_dia'
+                                ? 'text-emerald-400 font-semibold'
+                                : 'text-slate-500'
+                        }
                       >
-                        Pendente (45 dias)
-                      </Badge>
-                    ) : (
-                      <span className="text-slate-400">Regular</span>
-                    )}
-                  </td>
-                  <td className="py-2.5 capitalize">{c.garantia_tipo.replace('_', ' ')}</td>
-                </tr>
-              ))}
+                        {sit === 'em_dia'
+                          ? '🟢 Em dia'
+                          : sit === 'em_aberto'
+                            ? '🟡 Em aberto'
+                            : sit === 'inadimplente'
+                              ? '🔴 Em atraso'
+                              : '— sem cobranças'}
+                      </span>
+                    </td>
+                    <td className="py-2.5">
+                      {renov ? (
+                        <Badge
+                          variant="outline"
+                          className={
+                            renov.startsWith('Renovação')
+                              ? 'border-amber-400 text-amber-300 text-[10px]'
+                              : 'border-violet-400 text-violet-300 text-[10px]'
+                          }
+                        >
+                          {renov}
+                        </Badge>
+                      ) : (
+                        <span className="text-slate-500 text-[10px]">—</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 capitalize">{c.garantia_tipo.replace('_', ' ')}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* BUSCA */}
-      <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+      {/* BUSCA + INDICADORES DO BRIEFING */}
+      <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
@@ -304,6 +396,30 @@ export default function ContratosPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 h-8 text-xs bg-slate-50 dark:bg-slate-800"
           />
+        </div>
+        <div className="flex items-center gap-2 sm:ml-auto flex-wrap">
+          <button
+            onClick={() => setFiltroSemDocumento((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1.5 ${
+              filtroSemDocumento
+                ? 'bg-gradient-amber text-white border-transparent shadow-glow-amber/40'
+                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/20'
+            }`}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Sem documento ({contratos.filter((c) => !contratosComDocumento.has(c.id)).length})
+          </button>
+          <button
+            onClick={() => setFiltroSemGarantia((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1.5 ${
+              filtroSemGarantia
+                ? 'bg-gradient-rose text-white border-transparent shadow-glow-rose/40'
+                : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-500/20'
+            }`}
+          >
+            <FileCheck className="w-3.5 h-3.5" />
+            Sem garantia ({contratosSemGarantia.size})
+          </button>
         </div>
       </div>
 
@@ -773,84 +889,29 @@ export default function ContratosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL DETALHE DO CONTRATO */}
+      {/* MODAL DETALHE DO CONTRATO — FICHA COMPLETA */}
       <Dialog open={!!detalheContrato} onOpenChange={(open) => !open && setDetalheContrato(null)}>
-        <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center justify-between">
+            <DialogTitle className="text-base font-bold flex items-center justify-between gap-2">
               <span>Contrato {detalheContrato?.numero}</span>
-              <span>{detalheContrato && statusBadge(detalheContrato.status)}</span>
+              <span className="flex items-center gap-2">
+                {detalheContrato && statusBadge(detalheContrato.status)}
+                {detalheContrato && detalheContrato.expand?.imovel?.nome && (
+                  <Badge variant="outline" className="text-[10px] font-normal">
+                    {detalheContrato.expand?.imovel?.nome}
+                  </Badge>
+                )}
+              </span>
             </DialogTitle>
           </DialogHeader>
 
           {detalheContrato && (
-            <div className="space-y-4 text-xs">
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-slate-500">Imóvel:</span>{' '}
-                  <strong>{detalheContrato.expand?.imovel?.nome || detalheContrato.imovel}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-500">Inquilino:</span>{' '}
-                  <strong>
-                    {detalheContrato.expand?.inquilino?.nome || detalheContrato.inquilino}
-                  </strong>
-                </div>
-                <div>
-                  <span className="text-slate-500">Aluguel Atual:</span>{' '}
-                  <strong className="text-emerald-600">
-                    {formatBRL(detalheContrato.valor_atual)}
-                  </strong>
-                </div>
-                <div>
-                  <span className="text-slate-500">Vencimento:</span>{' '}
-                  <strong>Todo dia {detalheContrato.dia_vencimento}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-500">Início:</span>{' '}
-                  {formatDateBR(detalheContrato.data_inicio)}
-                </div>
-                <div>
-                  <span className="text-slate-500">Término:</span>{' '}
-                  {formatDateBR(detalheContrato.data_fim)}
-                </div>
-                <div>
-                  <span className="text-slate-500">Índice Reajuste:</span>{' '}
-                  {detalheContrato.indice_reajuste} ({detalheContrato.periodicidade_reajuste})
-                </div>
-                <div>
-                  <span className="text-slate-500">Próx. Reajuste:</span>{' '}
-                  {formatDateBR(detalheContrato.data_base_reajuste)}
-                </div>
-              </div>
-
-              <div className="p-3 border rounded">
-                <div className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Garantia Locatícia
-                </div>
-                <div>
-                  Tipo:{' '}
-                  <strong className="capitalize">
-                    {detalheContrato.garantia_tipo.replace('_', ' ')}
-                  </strong>
-                </div>
-                <div>
-                  Valor: <strong>{formatBRL(detalheContrato.garantia_valor)}</strong>
-                </div>
-                <div className="text-slate-500 mt-1">{detalheContrato.garantia_detalhes}</div>
-              </div>
-
-              {detalheContrato.clausulas_especiais && (
-                <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded">
-                  <div className="text-slate-400 text-[10px] uppercase font-semibold">
-                    Cláusulas Especiais
-                  </div>
-                  <div className="mt-1 text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {detalheContrato.clausulas_especiais}
-                  </div>
-                </div>
-              )}
-            </div>
+            <FichaContrato
+              contrato={detalheContrato}
+              onClose={() => setDetalheContrato(null)}
+              aoAlterar={loadData}
+            />
           )}
 
           <DialogFooter>

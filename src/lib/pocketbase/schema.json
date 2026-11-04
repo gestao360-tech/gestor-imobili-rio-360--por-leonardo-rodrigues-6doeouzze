@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T19:25:10.957Z",
+  "generatedAt": "2026-11-04T19:37:09.125Z",
   "collections": [
     {
       "name": "users",
@@ -703,6 +703,30 @@
         },
         {
           "name": "instalacao_cemig",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_distrato",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "motivo_distrato",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "entrega_chaves_data",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_fim_anterior",
           "type": "text",
           "required": false,
           "system": false
