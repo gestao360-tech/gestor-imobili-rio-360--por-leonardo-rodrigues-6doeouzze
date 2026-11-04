@@ -1,2 +1,3 @@
-/* Arquivo reservado para utilitários futuros de WhatsApp. Intencionalmente válido. */
-export const RESERVADO = true
+// Arquivo fantasma histórico (não é código do projeto); mantido vazio apenas para
+// destravar o oxfmt até a remoção definitiva do diretório corruptedsrc/.
+export {}
