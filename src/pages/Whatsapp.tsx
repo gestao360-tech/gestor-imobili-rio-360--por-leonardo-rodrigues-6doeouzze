@@ -47,11 +47,31 @@ import { FilaWhatsappModel } from '@/types/database'
 type FiltroFila = 'pendentes' | 'todos' | 'enviados'
 
 const STATUS_BADGE: Record<string, { label: string; classe: string }> = {
-  pendente: { label: 'Pendente', classe: 'bg-amber-100 text-amber-800 border-amber-200' },
-  aprovado: { label: 'Aprovado', classe: 'bg-blue-100 text-blue-800 border-blue-200' },
-  enviado: { label: 'Enviado', classe: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  falhado: { label: 'Falhou', classe: 'bg-red-100 text-red-800 border-red-200' },
-  descartado: { label: 'Descartado', classe: 'bg-slate-200 text-slate-600 border-slate-300' },
+  pendente: {
+    label: 'Pendente',
+    classe:
+      'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800 font-semibold',
+  },
+  aprovado: {
+    label: 'Aprovado',
+    classe:
+      'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800 font-semibold',
+  },
+  enviado: {
+    label: 'Enviado',
+    classe:
+      'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800 font-semibold',
+  },
+  falhado: {
+    label: 'Falhou',
+    classe:
+      'bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800 font-semibold',
+  },
+  descartado: {
+    label: 'Descartado',
+    classe:
+      'bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 font-semibold',
+  },
 }
 
 export default function PaginaWhatsapp() {
@@ -597,9 +617,9 @@ export default function PaginaWhatsapp() {
                           <Badge variant="destructive">⚠️ Sem WhatsApp válido</Badge>
                         )}
                         {item.link_incluido && (
-                          <Badge className="bg-navy-secondary text-gold-light gap-1 border border-gold-metallic/40">
+                          <Badge className="bg-navy-secondary text-gold-luminous gap-1 border border-gold-metallic/40 font-semibold">
                             <Link2 className="w-3 h-3 text-gold-luminous" />
-                            Link de pagamento incluído
+                            link de pagamento
                           </Badge>
                         )}
                         {item.tipo === 'recibo_aluguel' && item.link_recibo && (

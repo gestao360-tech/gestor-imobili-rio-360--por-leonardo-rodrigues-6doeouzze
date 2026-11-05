@@ -84,6 +84,7 @@ export default function FinanceiroPage() {
   } | null>(null)
   // Cobranças com recibo já emitido (número + URL), mescladas com os dados reais
   const [recibos, setRecibos] = useState<Record<string, { numero?: string; url?: string }>>({})
+  const [reciboVisualizar, setReciboVisualizar] = useState<CobrancaModel | null>(null)
 
   const reciboDe = (item: CobrancaModel) => recibos[item.id] || {}
   const cobrancaQuitavel = (item: CobrancaModel) =>
@@ -393,22 +394,43 @@ export default function FinanceiroPage() {
   const statusCobrancaBadge = (st: string) => {
     switch (st) {
       case 'pago':
-        return <Badge className="bg-emerald-600 text-white">Pago</Badge>
+        return (
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">Pago</Badge>
+        )
       case 'pago_parcialmente':
-        return <Badge className="bg-amber-600 text-white">Pago Parcialmente</Badge>
+        return (
+          <Badge className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+            Pago Parcialmente
+          </Badge>
+        )
       case 'vencido':
-        return <Badge variant="destructive">Vencido</Badge>
+        return (
+          <Badge variant="destructive" className="font-bold">
+            Vencido
+          </Badge>
+        )
       case 'em_negociacao':
         return (
-          <Badge className="bg-navy-secondary text-white border-navy-border">Em Negociação</Badge>
+          <Badge className="bg-navy-secondary text-white border-navy-border font-bold">
+            Em Negociação
+          </Badge>
         )
       case 'renegociado':
-        return <Badge className="bg-blue-600 text-white">Renegociado</Badge>
+        return (
+          <Badge className="bg-blue-600 hover:bg-blue-700 text-white font-bold">Renegociado</Badge>
+        )
       case 'cancelado':
-        return <Badge variant="secondary">Cancelado</Badge>
+        return (
+          <Badge variant="secondary" className="font-medium">
+            Cancelado
+          </Badge>
+        )
       default:
         return (
-          <Badge variant="outline" className="border-slate-400">
+          <Badge
+            variant="outline"
+            className="border-slate-400 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold"
+          >
             A Vencer
           </Badge>
         )
@@ -640,8 +662,8 @@ export default function FinanceiroPage() {
                           <td className="p-3">{statusCobrancaBadge(item.status)}</td>
                           <td className="p-3">
                             {(cobrancasComLink[item.id] || item.link_pagamento) && (
-                              <Badge className="bg-navy-secondary text-gold-luminous border border-gold-metallic/40 gap-1 whitespace-nowrap shadow-2xs">
-                                <Link2 className="w-3 h-3 text-gold-metallic" />
+                              <Badge className="bg-navy-secondary text-gold-luminous border border-gold-metallic/40 gap-1 whitespace-nowrap shadow-2xs font-semibold">
+                                <Link2 className="w-3 h-3 text-gold-luminous" />
                                 com link
                               </Badge>
                             )}

@@ -359,13 +359,13 @@ export default function Index() {
           {/* SEÇÃO PRÓXIMAS PROVIDÊNCIAS (🟠) */}
           <div className="border border-orange-200/80 dark:border-orange-500/30 rounded-xl p-3 bg-orange-50/60 dark:bg-orange-950/20 flex flex-col">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-orange-200 dark:border-orange-900/60">
-              <div className="flex items-center gap-1.5 font-bold text-xs text-orange-700 dark:text-orange-400 uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 font-bold text-xs text-orange-800 dark:text-orange-300 uppercase tracking-wider">
                 <span>🟠</span>
                 <span>PRÓXIMAS PROVIDÊNCIAS</span>
               </div>
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 border-orange-300 text-orange-700 dark:text-orange-300"
+                className="text-[10px] px-1.5 py-0 border-orange-400/80 text-orange-800 dark:text-orange-200 bg-orange-100/60 dark:bg-orange-950/40 font-bold"
               >
                 {proximas.length}
               </Badge>
@@ -413,13 +413,13 @@ export default function Index() {
           {/* SEÇÃO ACOMPANHAMENTO (🟡) */}
           <div className="border border-amber-200/80 dark:border-amber-500/30 rounded-xl p-3 bg-gradient-amber-soft dark:bg-amber-950/20 flex flex-col">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-200 dark:border-amber-900/60">
-              <div className="flex items-center gap-1.5 font-bold text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 font-bold text-xs text-amber-800 dark:text-amber-300 uppercase tracking-wider">
                 <span>🟡</span>
                 <span>ACOMPANHAMENTO</span>
               </div>
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 border-amber-300 text-amber-700 dark:text-amber-300"
+                className="text-[10px] px-1.5 py-0 border-amber-400/80 text-amber-800 dark:text-amber-200 bg-amber-100/60 dark:bg-amber-950/40 font-bold"
               >
                 {acompanhamento.length}
               </Badge>
@@ -449,7 +449,7 @@ export default function Index() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-6 px-2 text-[10px] bg-amber-400 text-white shadow-md shadow-amber-400/30 hover:bg-amber-500 dark:bg-amber-500"
+                        className="h-6 px-2 text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
                         onClick={() => {
                           setSelectedPendencia(item)
                           setSolucaoTexto('')
@@ -470,13 +470,15 @@ export default function Index() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* 7. Total de imóveis */}
         <div className="p-3 rounded-xl border border-gold-metallic/35 dark:border-gold-metallic/25 bg-gradient-gold-soft">
-          <div className="text-[10px] font-extrabold text-gold-bronze dark:text-gold-light/85 uppercase tracking-wider">
+          <div className="text-[10px] font-extrabold text-gold-bronze dark:text-gold-light/95 uppercase tracking-wider">
             1. Total imóveis
           </div>
           <div className="text-base font-extrabold text-gold-dark dark:text-gold-luminous mt-0.5">
             {metrics?.totalImoveis ?? 0}
           </div>
-          <div className="text-[10px] text-gold-bronze/75 dark:text-gold-light/60">cadastrados</div>
+          <div className="text-[10px] text-gold-bronze/90 dark:text-gold-light/80 font-medium">
+            cadastrados
+          </div>
         </div>
 
         {/* 8. Imóveis alugados */}

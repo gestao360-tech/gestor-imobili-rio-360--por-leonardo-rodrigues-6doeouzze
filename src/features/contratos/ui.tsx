@@ -19,19 +19,19 @@ export function statusBadgeContrato(status: ContratoModel['status']) {
       )
     case 'prorrogado_legal':
       return (
-        <Badge className="bg-gradient-sky text-white border-transparent text-[10px]">
+        <Badge className="bg-navy-secondary text-white border-navy-light/40 text-[10px] font-semibold">
           Prorrogado Legal
         </Badge>
       )
     case 'renovado':
       return (
-        <Badge className="bg-gradient-brand text-white border-transparent text-[10px]">
+        <Badge className="bg-gradient-brand text-white border-transparent text-[10px] font-semibold">
           Renovado
         </Badge>
       )
     case 'em_negociacao':
       return (
-        <Badge className="bg-gradient-amber text-white border-transparent text-[10px]">
+        <Badge className="bg-amber-600 text-white border-transparent text-[10px] font-semibold">
           Em Negociação
         </Badge>
       )
@@ -76,13 +76,13 @@ export function situacaoFinanceiraContrato(cobrancas: CobrancaModel[]): Situacao
 export function badgeSituacaoFinanceira(sit: SituacaoFinanceira) {
   switch (sit) {
     case 'em_dia':
-      return <span className="text-emerald-600 dark:text-emerald-400 font-semibold">🟢 Em dia</span>
+      return <span className="text-emerald-700 dark:text-emerald-300 font-bold">🟢 Em dia</span>
     case 'em_aberto':
-      return <span className="text-amber-600 dark:text-amber-400 font-semibold">🟡 Em aberto</span>
+      return <span className="text-amber-700 dark:text-amber-300 font-bold">🟡 Em aberto</span>
     case 'inadimplente':
-      return <span className="text-rose-600 dark:text-rose-400 font-semibold">🔴 Em atraso</span>
+      return <span className="text-rose-700 dark:text-rose-300 font-bold">🔴 Em atraso</span>
     default:
-      return <span className="text-muted-foreground">Sem cobranças</span>
+      return <span className="text-muted-foreground font-medium">Sem cobranças</span>
   }
 }
 

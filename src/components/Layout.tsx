@@ -130,7 +130,7 @@ export default function Layout() {
               <div className="font-extrabold text-[13px] tracking-tight text-white flex items-center gap-1.5">
                 GESTOR IMOBILIÁRIO <span className="text-gold-luminous font-extrabold">360</span>
               </div>
-              <div className="text-[10px] text-gold-light/70 uppercase tracking-[0.18em] font-semibold">
+              <div className="text-[10px] text-gold-light/85 uppercase tracking-[0.18em] font-semibold">
                 Gestão Patrimonial
               </div>
             </div>
@@ -144,12 +144,12 @@ export default function Layout() {
         </div>
 
         {/* Demo banner badge */}
-        <div className="relative px-3 py-2 border-b border-gold-metallic/20 bg-gold-metallic/10 flex items-center justify-between text-xs">
-          <span className="flex items-center gap-1.5 text-gold-light font-medium">
+        <div className="relative px-3 py-2 border-b border-gold-metallic/25 bg-gold-metallic/15 flex items-center justify-between text-xs">
+          <span className="flex items-center gap-1.5 text-gold-light font-semibold">
             <span className="w-2 h-2 rounded-full bg-gold-luminous animate-pulse shadow-glow-gold" />
             Dados Demonstrativos
           </span>
-          <span className="text-[10px] bg-gold-metallic/25 text-gold-light px-1.5 py-0.5 rounded-full font-semibold border border-gold-metallic/30">
+          <span className="text-[10px] bg-gold-metallic/30 text-white px-1.5 py-0.5 rounded-full font-bold border border-gold-metallic/40">
             Ativo
           </span>
         </div>
@@ -180,7 +180,7 @@ export default function Layout() {
                 {item.path === '/assistente-ia' && (
                   <Badge
                     variant="outline"
-                    className="border-gold-metallic/50 text-gold-luminous text-[9px] px-1 py-0 uppercase bg-gold-metallic/10"
+                    className="border-gold-metallic/60 text-gold-luminous text-[9px] px-1.5 py-0 uppercase bg-gold-metallic/20 font-bold"
                   >
                     IA
                   </Badge>

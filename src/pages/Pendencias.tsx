@@ -152,16 +152,28 @@ export default function PendenciasPage() {
     switch (prio) {
       case 'urgente':
         return (
-          <Badge variant="destructive" className="text-[10px]">
+          <Badge variant="destructive" className="text-[10px] font-bold">
             🔴 Urgente
           </Badge>
         )
       case 'alta':
-        return <Badge className="bg-orange-500 text-white text-[10px]">🟠 Alta</Badge>
+        return (
+          <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-[10px] font-bold">
+            🟠 Alta
+          </Badge>
+        )
       case 'media':
-        return <Badge className="bg-amber-500 text-white text-[10px]">🟡 Média</Badge>
+        return (
+          <Badge className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold">
+            🟡 Média
+          </Badge>
+        )
       default:
-        return <Badge className="bg-emerald-600 text-white text-[10px]">🟢 Baixa</Badge>
+        return (
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold">
+            🟢 Baixa
+          </Badge>
+        )
     }
   }
 

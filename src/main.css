@@ -36,9 +36,9 @@
     --muted: 210 24% 94%;
     --muted-foreground: 212 25% 42%;
 
-    /* Dourado metálico suave para acento claro */
+    /* Dourado metálico suave para acento claro com texto contrastante escuro */
     --accent: 40 60% 93%;
-    --accent-foreground: 33 66% 26%;
+    --accent-foreground: 33 66% 24%;
 
     --destructive: 350 84% 52%;
     --destructive-foreground: 0 0% 100%;
@@ -51,7 +51,7 @@
 
     /* Sidebar usa o azul-marinho profundo #06182B */
     --sidebar-background: 211 75% 10%;
-    --sidebar-foreground: 43 55% 85%;
+    --sidebar-foreground: 43 45% 90%;
     --sidebar-primary: 16 88% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 63% 17%;

@@ -138,6 +138,10 @@ export default {
         'glow-rose': '0 0 20px -4px rgba(244, 63, 94, 0.35)',
         'glow-card': '0 10px 30px -10px rgba(6, 24, 43, 0.08)',
         'glow-card-dark': '0 10px 30px -10px rgba(0, 0, 0, 0.6)',
+        subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        elevation: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        soft: '0 4px 24px -6px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.06)',
+        lifted: '0 18px 45px -14px rgba(15, 23, 42, 0.22), 0 4px 12px -4px rgba(15, 23, 42, 0.08)',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -149,12 +153,6 @@ export default {
       transitionProperty: {
         width: 'width',
         height: 'height',
-      },
-      boxShadow: {
-        subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-        elevation: '0 4px 20px rgba(0, 0, 0, 0.05)',
-        soft: '0 4px 24px -6px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.06)',
-        lifted: '0 18px 45px -14px rgba(15, 23, 42, 0.22), 0 4px 12px -4px rgba(15, 23, 42, 0.08)',
       },
       keyframes: {
         'scale-in': {
