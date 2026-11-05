@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast'
 import {
   Check,
   Eye,
+  FileSignature,
   FileText,
   Image as ImageIcon,
   Loader2,
@@ -17,6 +18,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import {
   CONFIG_RECIBO_PADRAO,
   getReciboConfig,
@@ -495,6 +497,83 @@ export function SecaoReciboConfig() {
                 />
               </div>
             </CardContent>
+          </Card>
+
+          {/* CAMPOS DE ASSINATURA */}
+          <Card className="border-slate-200 dark:border-slate-800">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <FileSignature className="w-4 h-4 text-primary" />
+                    Campos de Assinatura
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    Assinatura do emitente/locador e do locatário com linhas horizontais e data de
+                    emissão.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label
+                    htmlFor="exibir_assinaturas"
+                    className="text-xs font-semibold cursor-pointer"
+                  >
+                    {form.exibir_assinaturas !== false ? 'Ativado' : 'Desativado'}
+                  </Label>
+                  <Switch
+                    id="exibir_assinaturas"
+                    checked={form.exibir_assinaturas !== false}
+                    onCheckedChange={(checked) => setForm({ ...form, exibir_assinaturas: checked })}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            {form.exibir_assinaturas !== false && (
+              <CardContent className="space-y-3.5 text-xs border-t border-slate-100 dark:border-slate-800 pt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="rotulo_emitente" className="text-xs">
+                      Rótulo Bloco 1 (Emitente / Locador)
+                    </Label>
+                    <Input
+                      id="rotulo_emitente"
+                      value={form.rotulo_assinatura_emitente ?? 'Locador / Emitente'}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          rotulo_assinatura_emitente: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Locador / Emitente"
+                      className="text-xs"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Exibido sob o nome do locador ou administradora.
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="rotulo_locatario" className="text-xs">
+                      Rótulo Bloco 2 (Locatário / Inquilino)
+                    </Label>
+                    <Input
+                      id="rotulo_locatario"
+                      value={form.rotulo_assinatura_locatario ?? 'Locatário'}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          rotulo_assinatura_locatario: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Locatário"
+                      className="text-xs"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Exibido sob o nome do inquilino que efetuou o pagamento.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
 

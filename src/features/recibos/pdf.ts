@@ -697,39 +697,123 @@ export async function gerarPdfRecibo(
     }
   }
 
-  // CAMPO DE ASSINATURA
-  const yAss = Math.max(y + 24, A4_H - 150)
-  ops.push({
-    linha: {
-      x1: cx - 120,
-      y1: yAss,
-      x2: cx + 120,
-      y2: yAss,
-      w: 0.9,
-      cor: tema.primaria,
-    },
-  })
-  ops.push({
-    texto: {
-      x: cx,
-      y: yAss + 14,
-      size: 9.5,
-      bold: true,
-      centro: true,
-      cor: COR_TEXTO_PADRAO,
-      conteudo: emitenteNome || dados.locador.nome || 'Locador(a) / Administradora',
-    },
-  })
-  ops.push({
-    texto: {
-      x: cx,
-      y: yAss + 26,
-      size: 8,
-      centro: true,
-      cor: COR_CINZA_MUTED,
-      conteudo: 'Assinatura do emitente / responsável legal',
-    },
-  })
+  // CAMPOS DE ASSINATURA (Emitente e Locatário lado a lado + data de emissão)
+  const exibirAssinaturas = p.exibir_assinaturas !== false
+  if (exibirAssinaturas) {
+    const yAss = Math.max(y + 28, A4_H - 145)
+    const larguraLinha = 180
+    const centroCol1 = M + larguraLinha / 2
+    const centroCol2 = M + W - larguraLinha / 2
+    const corLinhaAssinatura: [number, number, number] = [0.4, 0.46, 0.54] // tom neutro/escuro legível
+
+    // Bloco 1: Emitente / Locador
+    ops.push({
+      linha: {
+        x1: centroCol1 - larguraLinha / 2,
+        y1: yAss,
+        x2: centroCol1 + larguraLinha / 2,
+        y2: yAss,
+        w: 0.8,
+        cor: corLinhaAssinatura,
+      },
+    })
+    ops.push({
+      texto: {
+        x: centroCol1,
+        y: yAss + 13,
+        size: 9.5,
+        bold: true,
+        centro: true,
+        cor: COR_TEXTO_PADRAO,
+        conteudo: emitenteNome || dados.locador.nome || 'Locador / Emitente',
+      },
+    })
+    const rotuloEmitente = p.rotulo_assinatura_emitente?.trim() || 'Locador / Emitente'
+    ops.push({
+      texto: {
+        x: centroCol1,
+        y: yAss + 24,
+        size: 8,
+        centro: true,
+        cor: COR_CINZA_MUTED,
+        conteudo: rotuloEmitente,
+      },
+    })
+    if (emitenteDoc) {
+      ops.push({
+        texto: {
+          x: centroCol1,
+          y: yAss + 34,
+          size: 7.5,
+          centro: true,
+          cor: COR_CINZA_MUTED,
+          conteudo: emitenteDoc,
+        },
+      })
+    }
+
+    // Bloco 2: Locatário
+    const locatarioNome = dados.inquilino.nome || 'Locatário'
+    const locatarioDoc = dados.inquilino.cpf_cnpj ? 'CPF/CNPJ: ' + dados.inquilino.cpf_cnpj : ''
+    ops.push({
+      linha: {
+        x1: centroCol2 - larguraLinha / 2,
+        y1: yAss,
+        x2: centroCol2 + larguraLinha / 2,
+        y2: yAss,
+        w: 0.8,
+        cor: corLinhaAssinatura,
+      },
+    })
+    ops.push({
+      texto: {
+        x: centroCol2,
+        y: yAss + 13,
+        size: 9.5,
+        bold: true,
+        centro: true,
+        cor: COR_TEXTO_PADRAO,
+        conteudo: locatarioNome,
+      },
+    })
+    const rotuloLocatario = p.rotulo_assinatura_locatario?.trim() || 'Locatário'
+    ops.push({
+      texto: {
+        x: centroCol2,
+        y: yAss + 24,
+        size: 8,
+        centro: true,
+        cor: COR_CINZA_MUTED,
+        conteudo: rotuloLocatario,
+      },
+    })
+    if (locatarioDoc) {
+      ops.push({
+        texto: {
+          x: centroCol2,
+          y: yAss + 34,
+          size: 7.5,
+          centro: true,
+          cor: COR_CINZA_MUTED,
+          conteudo: locatarioDoc,
+        },
+      })
+    }
+
+    // Data de emissão sob o bloco de assinaturas
+    const dataEmissaoTexto =
+      'Emitido em ' + (dados.data_pagamento_br || new Date().toLocaleDateString('pt-BR'))
+    ops.push({
+      texto: {
+        x: cx,
+        y: yAss + 48,
+        size: 8,
+        centro: true,
+        cor: COR_CINZA_MUTED,
+        conteudo: dataEmissaoTexto,
+      },
+    })
+  }
 
   // RODAPÉ CONFIGURÁVEL
   const textoRodape =

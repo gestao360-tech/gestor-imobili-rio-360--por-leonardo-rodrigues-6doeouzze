@@ -36,6 +36,9 @@ export const CONFIG_RECIBO_PADRAO: ReciboConfig = {
     'Recebemos de {inquilino_nome}{inquilino_documento}, a importância de {valor_pago} ({valor_pago_extenso}), referente ao pagamento do aluguel e encargos da competência {competencia} do imóvel {imovel_rotulo}. Damos plena, rasa e geral quitação da referida quantia.',
   observacoes: '',
   rodape: 'Emitido pelo Gestor Imobiliário 360 · Sistema de Gestão Patrimonial',
+  exibir_assinaturas: true,
+  rotulo_assinatura_emitente: 'Locador / Emitente',
+  rotulo_assinatura_locatario: 'Locatário',
 }
 
 /** Carrega a configuração do recibo salva no banco; fallback para padrão da empresa ou padrão do sistema. */

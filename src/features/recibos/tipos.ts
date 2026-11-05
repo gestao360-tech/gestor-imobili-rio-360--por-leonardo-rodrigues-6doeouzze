@@ -17,6 +17,11 @@ export interface ReciboPersonalizacao {
 
   // Visual
   cor_destaque?: CorDestaqueRecibo // 'navy' | 'gold' | 'orange'
+
+  // Assinaturas
+  exibir_assinaturas?: boolean // Padrão true
+  rotulo_assinatura_emitente?: string // Padrão "Locador / Emitente"
+  rotulo_assinatura_locatario?: string // Padrão "Locatário"
 }
 
 /** Configuração completa persistida em `configuracoes` com chave `recibo_config`. */

@@ -19,11 +19,13 @@ import {
   Download,
   Eye,
   FileCheck,
+  FileSignature,
   FileText,
   Loader2,
   Send,
   Settings2,
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import {
   CONFIG_RECIBO_PADRAO,
   buscarRecibo,
@@ -325,6 +327,70 @@ export function DialogEmissaoRecibo({
                       placeholder="Ex: Pagamento referente a acordo, quitação sem juros..."
                       className="text-xs"
                     />
+                  </div>
+
+                  {/* Ajustes de Assinatura no Diálogo */}
+                  <div className="md:col-span-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label
+                        htmlFor="dialog_exibir_assinaturas"
+                        className="text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <FileSignature className="w-3.5 h-3.5 text-primary" />
+                        Linhas de Assinatura (Emitente e Locatário)
+                      </Label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-500">
+                          {personalizacao.exibir_assinaturas !== false
+                            ? 'Exibir no recibo'
+                            : 'Ocultar'}
+                        </span>
+                        <Switch
+                          id="dialog_exibir_assinaturas"
+                          checked={personalizacao.exibir_assinaturas !== false}
+                          onCheckedChange={(checked) =>
+                            setPersonalizacao({ ...personalizacao, exibir_assinaturas: checked })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {personalizacao.exibir_assinaturas !== false && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <div className="space-y-0.5">
+                          <Label className="text-[10px] text-slate-500">
+                            Rótulo Emitente / Locador
+                          </Label>
+                          <Input
+                            value={
+                              personalizacao.rotulo_assinatura_emitente ?? 'Locador / Emitente'
+                            }
+                            onChange={(e) =>
+                              setPersonalizacao({
+                                ...personalizacao,
+                                rotulo_assinatura_emitente: e.target.value,
+                              })
+                            }
+                            placeholder="Locador / Emitente"
+                            className="text-xs h-7"
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <Label className="text-[10px] text-slate-500">Rótulo Locatário</Label>
+                          <Input
+                            value={personalizacao.rotulo_assinatura_locatario ?? 'Locatário'}
+                            onChange={(e) =>
+                              setPersonalizacao({
+                                ...personalizacao,
+                                rotulo_assinatura_locatario: e.target.value,
+                              })
+                            }
+                            placeholder="Locatário"
+                            className="text-xs h-7"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
