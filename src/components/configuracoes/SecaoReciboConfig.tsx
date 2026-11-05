@@ -471,17 +471,29 @@ export function SecaoReciboConfig() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="observacoes" className="text-xs">
-                  Observações Padrão / Instruções Adicionais
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor="observacoes"
+                    className="text-xs font-semibold text-slate-800 dark:text-slate-200"
+                  >
+                    Observações Padrão / Instruções Adicionais
+                  </Label>
+                  <span className="text-[10px] text-slate-400">
+                    Exibido como bloco visível no recibo (ou omitido se vazio)
+                  </span>
+                </div>
                 <Textarea
                   id="observacoes"
-                  rows={2}
+                  rows={3}
                   value={form.observacoes || ''}
                   onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
-                  placeholder="Ex: Este recibo quita exclusivamente as rubricas acima especificadas..."
+                  placeholder="Ex: Pagamento referente ao aluguel e encargos locatícios. Quitação irrevogável da referida competência..."
                   className="text-xs"
                 />
+                <p className="text-[10px] text-slate-400">
+                  Aparece em destaque acima da assinatura no PDF e na prévia. Pode ser ajustado
+                  individualmente a cada emissão no Financeiro.
+                </p>
               </div>
 
               <div className="space-y-1">

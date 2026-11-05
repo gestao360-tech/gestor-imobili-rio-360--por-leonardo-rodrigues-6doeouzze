@@ -28,6 +28,7 @@ export type {
 } from '@/features/recibos/tipos'
 
 export const CONFIG_CHAVE_RECIBO = 'recibo_config'
+export const CONFIG_CHAVE_RECIBO_LEGADO = 'recibo_aluguel'
 
 export const CONFIG_RECIBO_PADRAO: ReciboConfig = {
   titulo_documento: 'RECIBO DE ALUGUEL',
@@ -40,12 +41,15 @@ export const CONFIG_RECIBO_PADRAO: ReciboConfig = {
   rotulo_assinatura_emitente: 'Locador / Emitente',
 }
 
-/** Carrega a configuração do recibo salva no banco; fallback para padrão da empresa ou padrão do sistema. */
+/** Carrega a configuração do recibo salva no banco; busca primeiro 'recibo_config', depois 'recibo_aluguel', e fallback para padrão da empresa ou padrão do sistema. */
 export async function getReciboConfig(): Promise<ReciboConfig> {
+  // 1. Tenta buscar pela chave principal 'recibo_config' ou legado 'recibo_aluguel'
   try {
     const rec = await pb
       .collection('configuracoes')
-      .getFirstListItem(`chave = '${CONFIG_CHAVE_RECIBO}'`)
+      .getFirstListItem(
+        `chave = '${CONFIG_CHAVE_RECIBO}' || chave = '${CONFIG_CHAVE_RECIBO_LEGADO}'`,
+      )
     if (rec && rec.valor_json) {
       const parsed =
         typeof rec.valor_json === 'string' ? JSON.parse(rec.valor_json) : rec.valor_json
@@ -87,8 +91,13 @@ export async function salvarReciboConfig(config: ReciboConfig): Promise<ReciboCo
   try {
     const existente = await pb
       .collection('configuracoes')
-      .getFirstListItem(`chave = '${CONFIG_CHAVE_RECIBO}'`)
-    await pb.collection('configuracoes').update(existente.id, payload)
+      .getFirstListItem(
+        `chave = '${CONFIG_CHAVE_RECIBO}' || chave = '${CONFIG_CHAVE_RECIBO_LEGADO}'`,
+      )
+    await pb.collection('configuracoes').update(existente.id, {
+      ...payload,
+      chave: existente.chave || CONFIG_CHAVE_RECIBO,
+    })
   } catch (_) {
     await pb.collection('configuracoes').create(payload)
   }

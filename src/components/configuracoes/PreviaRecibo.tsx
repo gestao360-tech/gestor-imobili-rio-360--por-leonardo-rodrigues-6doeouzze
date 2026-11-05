@@ -47,6 +47,8 @@ const ESTILOS_TEMA: Record<
     bordaFundo: string
     badge: string
     boxTotal: string
+    boxObservacoes: string
+    rotuloObservacoes: string
   }
 > = {
   navy: {
@@ -55,6 +57,8 @@ const ESTILOS_TEMA: Record<
     bordaFundo: 'border-[#102B46]/30',
     badge: 'bg-[#06182B] text-white',
     boxTotal: 'bg-[#102B46]/5 dark:bg-[#102B46]/20 border-[#102B46]/20',
+    boxObservacoes: 'bg-[#06182B]/[0.03] dark:bg-[#102B46]/20 border-[#102B46]/20',
+    rotuloObservacoes: 'text-[#06182B] dark:text-[#FFF0B2]',
   },
   gold: {
     faixaSuperior: 'bg-[#D4A347]',
@@ -62,6 +66,8 @@ const ESTILOS_TEMA: Record<
     bordaFundo: 'border-[#D4A347]/40',
     badge: 'bg-[#86521D] text-white',
     boxTotal: 'bg-[#FFF0B2]/30 dark:bg-[#86521D]/20 border-[#D4A347]/30',
+    boxObservacoes: 'bg-[#FFF0B2]/20 dark:bg-[#86521D]/15 border-[#D4A347]/30',
+    rotuloObservacoes: 'text-[#86521D] dark:text-[#FFD477]',
   },
   orange: {
     faixaSuperior: 'bg-[#F15A24]',
@@ -69,6 +75,8 @@ const ESTILOS_TEMA: Record<
     bordaFundo: 'border-[#F15A24]/40',
     badge: 'bg-[#F15A24] text-white',
     boxTotal: 'bg-[#F15A24]/5 dark:bg-[#F15A24]/20 border-[#F15A24]/20',
+    boxObservacoes: 'bg-[#F15A24]/[0.04] dark:bg-[#F15A24]/15 border-[#F15A24]/25',
+    rotuloObservacoes: 'text-[#D94916] dark:text-[#FF7A47]',
   },
 }
 
@@ -198,15 +206,22 @@ export function PreviaRecibo({ dados, amostra = AMOSTRA_PADRAO }: PreviaReciboPr
           <div>Imóvel: {amostra.imovelRotulo}</div>
         </div>
 
-        {/* Observações personalizadas */}
-        {dados.observacoes?.trim() && (
-          <div className="p-2 bg-slate-50 dark:bg-slate-900/40 rounded border border-slate-200 dark:border-slate-800 text-[10px] text-slate-600 dark:text-slate-400">
-            <strong className="block text-slate-700 dark:text-slate-300 mb-0.5">
+        {/* Observações personalizadas (bloco visível com alto contraste quando preenchido) */}
+        {dados.observacoes?.trim() ? (
+          <div
+            className={`p-2.5 rounded border text-[10px] leading-relaxed transition-all ${estilo.boxObservacoes}`}
+          >
+            <div
+              className={`font-bold uppercase tracking-wider text-[10px] mb-1 flex items-center gap-1.5 ${estilo.rotuloObservacoes}`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
               Observações:
-            </strong>
-            <p className="whitespace-pre-line">{dados.observacoes}</p>
+            </div>
+            <p className="whitespace-pre-line text-slate-700 dark:text-slate-200 font-medium text-justify">
+              {dados.observacoes.trim()}
+            </p>
           </div>
-        )}
+        ) : null}
 
         {/* Campo de assinatura (apenas Locador/Emitente centralizado) */}
         {dados.exibir_assinaturas !== false && (

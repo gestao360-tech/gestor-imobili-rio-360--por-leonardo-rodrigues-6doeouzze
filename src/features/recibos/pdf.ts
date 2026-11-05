@@ -675,26 +675,76 @@ export async function gerarPdfRecibo(
     y += 13
   }
 
-  // OBSERVAÇÕES ESPECÍFICAS / PADRÃO
-  if (p.observacoes?.trim()) {
-    y += 6
+  // OBSERVAÇÕES ESPECÍFICAS / PADRÃO (bloco visível demarcado, harmonioso, alto contraste)
+  const obsTexto = p.observacoes?.trim()
+  if (obsTexto) {
+    const linhasObs = quebrar(obsTexto, 84)
+    const paddingX = 8
+    const paddingY = 7
+    const alturaBloco = paddingY * 2 + 10 + linhasObs.length * 11
+
+    y += 8
+    // Fundo do bloco de observações
     ops.push({
-      texto: {
+      retangulo: {
         x: M,
         y,
+        w: W,
+        h: alturaBloco,
+        cor: tema.bordaFundo,
+      },
+    })
+    // Borda superior sutil
+    ops.push({
+      linha: {
+        x1: M,
+        y1: y,
+        x2: M + W,
+        y2: y,
+        w: 0.6,
+        cor: tema.secundaria,
+      },
+    })
+    // Borda inferior sutil
+    ops.push({
+      linha: {
+        x1: M,
+        y1: y + alturaBloco,
+        x2: M + W,
+        y2: y + alturaBloco,
+        w: 0.6,
+        cor: tema.secundaria,
+      },
+    })
+
+    // Rótulo "OBSERVAÇÕES:"
+    ops.push({
+      texto: {
+        x: M + paddingX,
+        y: y + paddingY + 8,
         size: 8.5,
         bold: true,
         cor: tema.textoTitulo,
         conteudo: 'OBSERVAÇÕES:',
       },
     })
-    y += 12
-    for (const linha of quebrar(p.observacoes.trim(), 88)) {
+
+    // Linhas de texto das observações
+    let yTextoObs = y + paddingY + 20
+    for (const linha of linhasObs) {
       ops.push({
-        texto: { x: M, y, size: 8.5, cor: COR_TEXTO_PADRAO, conteudo: linha },
+        texto: {
+          x: M + paddingX,
+          y: yTextoObs,
+          size: 8.5,
+          cor: COR_TEXTO_PADRAO,
+          conteudo: linha,
+        },
       })
-      y += 12
+      yTextoObs += 11
     }
+
+    y += alturaBloco + 4
   }
 
   // CAMPO DE ASSINATURA (apenas Locador/Emitente centralizado + data de emissão)

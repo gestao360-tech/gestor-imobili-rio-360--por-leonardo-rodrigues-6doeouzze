@@ -317,16 +317,27 @@ export function DialogEmissaoRecibo({
                   </div>
 
                   <div className="space-y-1 md:col-span-2">
-                    <Label className="text-[11px]">Observações específicas desta quitação</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">
+                        Observações específicas desta quitação
+                      </Label>
+                      <span className="text-[10px] text-slate-400">
+                        Deixe vazio para não exibir o bloco
+                      </span>
+                    </div>
                     <Textarea
                       rows={2}
                       value={personalizacao.observacoes || ''}
                       onChange={(e) =>
                         setPersonalizacao({ ...personalizacao, observacoes: e.target.value })
                       }
-                      placeholder="Ex: Pagamento referente a acordo, quitação sem juros..."
+                      placeholder="Ex: Pagamento referente ao aluguel e encargos locatícios..."
                       className="text-xs"
                     />
+                    <p className="text-[10px] text-slate-400">
+                      Exibido no documento impresso como bloco visível acima da assinatura. Altera
+                      apenas esta emissão pontual.
+                    </p>
                   </div>
 
                   {/* Ajustes de Assinatura no Diálogo */}
