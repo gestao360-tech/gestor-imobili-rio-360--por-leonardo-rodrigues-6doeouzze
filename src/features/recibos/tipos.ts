@@ -21,7 +21,8 @@ export interface ReciboPersonalizacao {
   // Assinaturas
   exibir_assinaturas?: boolean // Padrão true
   rotulo_assinatura_emitente?: string // Padrão "Locador / Emitente"
-  rotulo_assinatura_locatario?: string // Padrão "Locatário"
+  /** @deprecated Ignorado: recibo assina exclusivamente o Locador/Emitente */
+  rotulo_assinatura_locatario?: string
 }
 
 /** Configuração completa persistida em `configuracoes` com chave `recibo_config`. */

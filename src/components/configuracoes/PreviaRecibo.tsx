@@ -208,44 +208,25 @@ export function PreviaRecibo({ dados, amostra = AMOSTRA_PADRAO }: PreviaReciboPr
           </div>
         )}
 
-        {/* Campos de assinatura (emitente e locatário lado a lado) */}
+        {/* Campo de assinatura (apenas Locador/Emitente centralizado) */}
         {dados.exibir_assinaturas !== false && (
           <div className="pt-5 pb-1 space-y-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Bloco 1: Emitente / Locador */}
-              <div className="flex flex-col items-center text-center">
-                <div className="w-full max-w-[190px] border-t border-slate-400 dark:border-slate-600 mb-1.5" />
-                <span className="text-[10.5px] font-bold text-slate-800 dark:text-slate-200 line-clamp-1">
-                  {emitenteNome}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-full max-w-[240px] border-t border-slate-400 dark:border-slate-600 mb-1.5" />
+              <span className="text-[10.5px] font-bold text-slate-800 dark:text-slate-200 line-clamp-1">
+                {emitenteNome}
+              </span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium">
+                {dados.rotulo_assinatura_emitente?.trim() || 'Locador / Emitente'}
+              </span>
+              {emitenteDoc && (
+                <span className="text-[8.5px] text-slate-400 dark:text-slate-500">
+                  {emitenteDoc}
                 </span>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium">
-                  {dados.rotulo_assinatura_emitente?.trim() || 'Locador / Emitente'}
-                </span>
-                {emitenteDoc && (
-                  <span className="text-[8.5px] text-slate-400 dark:text-slate-500">
-                    {emitenteDoc}
-                  </span>
-                )}
-              </div>
-
-              {/* Bloco 2: Locatário */}
-              <div className="flex flex-col items-center text-center">
-                <div className="w-full max-w-[190px] border-t border-slate-400 dark:border-slate-600 mb-1.5" />
-                <span className="text-[10.5px] font-bold text-slate-800 dark:text-slate-200 line-clamp-1">
-                  {amostra.inquilinoNome || 'Locatário'}
-                </span>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium">
-                  {dados.rotulo_assinatura_locatario?.trim() || 'Locatário'}
-                </span>
-                {amostra.inquilinoDoc && (
-                  <span className="text-[8.5px] text-slate-400 dark:text-slate-500">
-                    CPF/CNPJ: {amostra.inquilinoDoc}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Data sob a área de assinaturas */}
+            {/* Data centralizada sob a linha de assinatura */}
             <div className="text-center text-[9px] text-slate-500 dark:text-slate-400 font-medium pt-1">
               Emitido em {amostra.dataPagamento || new Date().toLocaleDateString('pt-BR')}
             </div>

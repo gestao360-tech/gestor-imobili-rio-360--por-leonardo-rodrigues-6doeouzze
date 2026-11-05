@@ -337,7 +337,7 @@ export function DialogEmissaoRecibo({
                         className="text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer"
                       >
                         <FileSignature className="w-3.5 h-3.5 text-primary" />
-                        Linhas de Assinatura (Emitente e Locatário)
+                        Linha de Assinatura (Locador / Emitente)
                       </Label>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-slate-500">
@@ -356,39 +356,21 @@ export function DialogEmissaoRecibo({
                     </div>
 
                     {personalizacao.exibir_assinaturas !== false && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <div className="space-y-0.5">
-                          <Label className="text-[10px] text-slate-500">
-                            Rótulo Emitente / Locador
-                          </Label>
-                          <Input
-                            value={
-                              personalizacao.rotulo_assinatura_emitente ?? 'Locador / Emitente'
-                            }
-                            onChange={(e) =>
-                              setPersonalizacao({
-                                ...personalizacao,
-                                rotulo_assinatura_emitente: e.target.value,
-                              })
-                            }
-                            placeholder="Locador / Emitente"
-                            className="text-xs h-7"
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <Label className="text-[10px] text-slate-500">Rótulo Locatário</Label>
-                          <Input
-                            value={personalizacao.rotulo_assinatura_locatario ?? 'Locatário'}
-                            onChange={(e) =>
-                              setPersonalizacao({
-                                ...personalizacao,
-                                rotulo_assinatura_locatario: e.target.value,
-                              })
-                            }
-                            placeholder="Locatário"
-                            className="text-xs h-7"
-                          />
-                        </div>
+                      <div className="space-y-0.5 pt-1">
+                        <Label className="text-[10px] text-slate-500">
+                          Rótulo Emitente / Locador
+                        </Label>
+                        <Input
+                          value={personalizacao.rotulo_assinatura_emitente ?? 'Locador / Emitente'}
+                          onChange={(e) =>
+                            setPersonalizacao({
+                              ...personalizacao,
+                              rotulo_assinatura_emitente: e.target.value,
+                            })
+                          }
+                          placeholder="Locador / Emitente"
+                          className="text-xs h-7"
+                        />
                       </div>
                     )}
                   </div>

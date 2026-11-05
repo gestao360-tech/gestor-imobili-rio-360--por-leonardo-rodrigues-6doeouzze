@@ -38,7 +38,6 @@ export const CONFIG_RECIBO_PADRAO: ReciboConfig = {
   rodape: 'Emitido pelo Gestor Imobiliário 360 · Sistema de Gestão Patrimonial',
   exibir_assinaturas: true,
   rotulo_assinatura_emitente: 'Locador / Emitente',
-  rotulo_assinatura_locatario: 'Locatário',
 }
 
 /** Carrega a configuração do recibo salva no banco; fallback para padrão da empresa ou padrão do sistema. */
