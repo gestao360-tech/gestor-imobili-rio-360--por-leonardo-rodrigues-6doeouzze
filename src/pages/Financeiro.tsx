@@ -30,6 +30,7 @@ import {
 } from '@/services/imobiliario'
 import { gerarLinkPagamento } from '@/services/pagamentos'
 import { emitirReciboAluguel, criarItemFilaRecibo } from '@/services/recibos'
+import { DialogEmissaoRecibo } from '@/features/recibos/DialogEmissaoRecibo'
 import { CobrancaModel, DespesaModel } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,6 +72,7 @@ export default function FinanceiroPage() {
   const [salvandoBaixa, setSalvandoBaixa] = useState(false)
 
   // Recibo de aluguel — estado por cobrança (emissão / envio à fila)
+  const [cobrancaModalRecibo, setCobrancaModalRecibo] = useState<CobrancaModel | null>(null)
   const [emitindoRecibo, setEmitindoRecibo] = useState<string>('')
   const [avisosRecibo, setAvisosRecibo] = useState<{ cobranca: string; mensagem: string } | null>(
     null,
@@ -196,56 +198,10 @@ export default function FinanceiroPage() {
     }
   }
 
-  /** Emite o recibo: busca dados no backend, gera o PDF no cliente, sobe em
-   *  documentos e grava número/URL na cobrança. Cobrança em aberto NUNCA finge
-   *  sucesso — o erro do backend ("exige baixa") vira aviso visível. */
-  const handleEmitirRecibo = async (item: CobrancaModel) => {
-    if (!cobrancaQuitavel(item)) {
-      setAvisosRecibo({
-        cobranca: item.id,
-        mensagem:
-          'O recibo de quitação exige baixa: registre o pagamento (total ou parcial) antes de emitir o recibo.',
-      })
-      toast({
-        title: 'Recibo exige baixa',
-        description: 'Registre o pagamento (total ou parcial) antes de emitir o recibo.',
-        variant: 'destructive',
-      })
-      return
-    }
-    setErroRecibo(null)
-    setAvisosRecibo(null)
-    setEmitindoRecibo(item.id)
-    try {
-      const dados = await emitirReciboAluguel(item.id)
-      setRecibos((prev) => ({
-        ...prev,
-        [item.id]: { numero: dados.numero, url: dados.url },
-      }))
-      if (dados.url) {
-        const a = document.createElement('a')
-        a.href = dados.url
-        a.target = '_blank'
-        a.rel = 'noreferrer'
-        a.download = 'recibo-' + dados.numero + '.pdf'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-      }
-      toast({
-        title: 'Recibo ' + dados.numero + ' emitido!',
-        description:
-          dados.saldo > 0.005
-            ? 'PDF gerado e salvo em Documentos (saldo parcial: ' + formatBRL(dados.saldo) + ').'
-            : 'PDF gerado, baixado e salvo em Documentos.',
-      })
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao emitir o recibo.'
-      setErroRecibo({ cobranca: item.id, mensagem: msg })
-      toast({ title: 'Erro ao emitir recibo', description: msg, variant: 'destructive' })
-    } finally {
-      setEmitindoRecibo('')
-    }
+  /** Abre o diálogo de emissão com prévia visual e personalização de textos/emitente.
+   *  Cobrança em aberto é prevenida visualmente dentro do diálogo com aviso de quitação. */
+  const handleEmitirRecibo = (item: CobrancaModel) => {
+    setCobrancaModalRecibo(item)
   }
 
   /** Cria o item PENDENTE na fila de WhatsApp (nada dispara sozinho). Dedupe
@@ -1076,6 +1032,16 @@ export default function FinanceiroPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* DIÁLOGO DE EMISSÃO COM PRÉVIA E PERSONALIZAÇÃO DE RECIBO */}
+      <DialogEmissaoRecibo
+        open={!!cobrancaModalRecibo}
+        onOpenChange={(open) => !open && setCobrancaModalRecibo(null)}
+        cobranca={cobrancaModalRecibo}
+        onSucesso={() => {
+          loadData()
+        }}
+      />
 
       {/* RECIBO PÓS-BAIXA: OFERECE "ENVIAR RECIBO AO WHATSAPP" (nada dispara sozinho) */}
       <Dialog open={!!baixaConcluida} onOpenChange={(open) => !open && setBaixaConcluida(null)}>

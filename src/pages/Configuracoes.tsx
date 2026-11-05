@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react'
 import SecaoNotificacoesEmail from '@/components/configuracoes/SecaoNotificacoesEmail'
 import SecaoWhatsapp from '@/components/configuracoes/SecaoWhatsapp'
+import { SecaoReciboConfig } from '@/components/configuracoes/SecaoReciboConfig'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   AlertTriangle,
@@ -243,7 +244,14 @@ export default function ImportacaoWizard() {
           <TabsTrigger value="whatsapp" className="text-xs">
             WhatsApp
           </TabsTrigger>
+          <TabsTrigger value="recibo" className="text-xs">
+            Recibo de Aluguel
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="recibo">
+          <SecaoReciboConfig />
+        </TabsContent>
 
         <TabsContent value="notificacoes">
           <SecaoNotificacoesEmail />

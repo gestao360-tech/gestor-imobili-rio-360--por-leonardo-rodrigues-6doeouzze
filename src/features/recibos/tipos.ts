@@ -1,4 +1,29 @@
 /** Tipos do recibo de aluguel padrão (espelham pocketbase/hooks/recibos_aluguel.js). */
+export type CorDestaqueRecibo = 'navy' | 'gold' | 'orange'
+
+export interface ReciboPersonalizacao {
+  // Emitente
+  emitente_nome?: string
+  emitente_cpf_cnpj?: string
+  emitente_contato?: string
+  emitente_endereco?: string
+  logo_url?: string
+
+  // Textos
+  titulo_documento?: string // Padrão "RECIBO DE ALUGUEL"
+  texto_quitacao?: string // Padrão com variáveis ou texto base
+  observacoes?: string // Observações / notas adicionais padrão
+  rodape?: string // Mensagem no rodapé / dados bancários
+
+  // Visual
+  cor_destaque?: CorDestaqueRecibo // 'navy' | 'gold' | 'orange'
+}
+
+/** Configuração completa persistida em `configuracoes` com chave `recibo_config`. */
+export interface ReciboConfig extends ReciboPersonalizacao {
+  logo_documento_id?: string
+}
+
 export interface ReciboAluguelDados {
   ok: boolean
   numero: string
@@ -29,4 +54,5 @@ export interface ReciboAluguelDados {
   locador: { nome: string; cpf_cnpj: string }
   imovel: { id: string; rotulo: string; endereco: string }
   contrato: { id: string; numero: string }
+  personalizacao?: ReciboPersonalizacao
 }

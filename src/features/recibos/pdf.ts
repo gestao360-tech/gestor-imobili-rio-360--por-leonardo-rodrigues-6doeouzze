@@ -258,198 +258,491 @@ function quebrar(texto: string, max: number): string[] {
   return linhas
 }
 
-const COR_TEXTO: [number, number, number] = [0.24, 0.28, 0.35]
-const COR_VERDE: [number, number, number] = [0.08, 0.55, 0.25]
-const COR_AMBAR: [number, number, number] = [0.72, 0.45, 0.05]
-const COR_VIOLETA: [number, number, number] = [0.44, 0.25, 0.96]
-const COR_VIOLETA_ESC: [number, number, number] = [0.3, 0.11, 0.58]
-const COR_CINZA: [number, number, number] = [0.42, 0.45, 0.5]
+// Paleta oficial do Gestor Imobiliário 360º (RGB normalizado 0..1):
+// - Azul-marinho profundo: #06182B => [0.024, 0.094, 0.169]
+// - Azul-marinho secundário: #102B46 => [0.063, 0.169, 0.275]
+// - Dourado escuro / bronze (texto com alto contraste): #86521D => [0.525, 0.322, 0.114]
+// - Dourado metálico (para bordas/fundos): #D4A347 => [0.831, 0.639, 0.278]
+// - Laranja institucional: #F15A24 => [0.945, 0.353, 0.141]
+// - Verde aprovação: #0D7A3E => [0.051, 0.478, 0.243]
+// - Cinza escuro texto: #1E293B => [0.118, 0.161, 0.231]
+// - Cinza médio / legenda: #475569 => [0.278, 0.333, 0.412]
+// - Fundo decorativo sutil: [0.98, 0.985, 0.99]
+const PALETA = {
+  navy: {
+    primaria: [0.024, 0.094, 0.169] as [number, number, number], // #06182B
+    secundaria: [0.063, 0.169, 0.275] as [number, number, number], // #102B46
+    textoTitulo: [0.024, 0.094, 0.169] as [number, number, number],
+    bordaFundo: [0.94, 0.96, 0.98] as [number, number, number],
+  },
+  gold: {
+    primaria: [0.831, 0.639, 0.278] as [number, number, number], // #D4A347
+    secundaria: [0.525, 0.322, 0.114] as [number, number, number], // #86521D (contraste seguro)
+    textoTitulo: [0.525, 0.322, 0.114] as [number, number, number],
+    bordaFundo: [0.99, 0.97, 0.92] as [number, number, number],
+  },
+  orange: {
+    primaria: [0.945, 0.353, 0.141] as [number, number, number], // #F15A24
+    secundaria: [0.72, 0.22, 0.05] as [number, number, number], // Laranja escuro / queimado
+    textoTitulo: [0.72, 0.22, 0.05] as [number, number, number],
+    bordaFundo: [0.99, 0.95, 0.93] as [number, number, number],
+  },
+}
+
+const COR_VERDE: [number, number, number] = [0.051, 0.478, 0.243]
+const COR_AMBAR: [number, number, number] = [0.65, 0.38, 0.05]
+const COR_TEXTO_PADRAO: [number, number, number] = [0.12, 0.16, 0.22]
+const COR_CINZA_MUTED: [number, number, number] = [0.38, 0.44, 0.52]
+
+/** Gera o texto de quitação substituindo variáveis dinâmicas ou usando texto padrão. */
+function formatarTextoQuitacao(template: string | undefined, dados: ReciboAluguelDados): string {
+  const c = dados.cobranca
+  const inquilinoDoc = dados.inquilino.cpf_cnpj
+    ? ' (CPF/CNPJ ' + dados.inquilino.cpf_cnpj + ')'
+    : ''
+  const imovelRotulo = dados.imovel.rotulo || dados.imovel.endereco || '—'
+  const valorPagoExtenso = valorPorExtenso(c.valor_pago)
+  const valorPagoFormatado = brl(c.valor_pago)
+
+  if (template && template.trim()) {
+    return template
+      .replace(/\{inquilino_nome\}/gi, dados.inquilino.nome || '—')
+      .replace(/\{inquilino_documento\}/gi, inquilinoDoc)
+      .replace(/\{valor_pago\}/gi, valorPagoFormatado)
+      .replace(/\{valor_pago_extenso\}/gi, valorPagoExtenso)
+      .replace(/\{competencia\}/gi, c.competencia || '—')
+      .replace(/\{imovel_rotulo\}/gi, imovelRotulo)
+      .replace(/\{locador_nome\}/gi, dados.locador.nome || '—')
+      .replace(/\{numero_recibo\}/gi, dados.numero || '—')
+  }
+
+  return (
+    'Recebemos de ' +
+    (dados.inquilino.nome || '—') +
+    inquilinoDoc +
+    ', a importância de ' +
+    valorPagoFormatado +
+    ' (' +
+    valorPagoExtenso +
+    '), referente ao aluguel e encargos da competência ' +
+    (c.competencia || '—') +
+    ' do imóvel ' +
+    imovelRotulo +
+    '. Damos plena, rasa e geral quitação da quantia discriminada neste documento.'
+  )
+}
 
 /** Gera o PDF do recibo e devolve o Blob + nome de arquivo. */
 export async function gerarPdfRecibo(
   dados: ReciboAluguelDados,
 ): Promise<{ blob: Blob; nomeArquivo: string }> {
-  const M = 56.7 // 2 cm
+  const M = 48
   const cx = A4_W / 2
   const W = A4_W - 2 * M
   const c = dados.cobranca
+  const p = dados.personalizacao || {}
+
+  const tema = PALETA[p.cor_destaque || 'navy'] || PALETA.navy
   const ops: Op[] = []
 
-  // Moldura dupla + faixa violeta (identidade do app)
-  ops.push({ retangulo: { x: 28, y: 28, w: A4_W - 56, h: A4_H - 56, cor: [0.95, 0.92, 1] } })
-  ops.push({ retangulo: { x: 28, y: 28, w: A4_W - 56, h: 9, cor: COR_VIOLETA } })
-  ops.push({ linha: { x1: 34, y1: 34, x2: A4_W - 34, y2: A4_H - 34, w: 1.6, cor: COR_VIOLETA } })
-  ops.push({ linha: { x1: 40, y1: 40, x2: A4_W - 40, y2: A4_H - 40, w: 0.6, cor: COR_VIOLETA } })
+  // Moldura institucional elegante
+  ops.push({
+    retangulo: { x: 24, y: 24, w: A4_W - 48, h: A4_H - 48, cor: tema.bordaFundo },
+  })
+  ops.push({
+    retangulo: { x: 26, y: 26, w: A4_W - 52, h: A4_H - 52, cor: [1, 1, 1] },
+  })
+  // Faixa superior com a cor primária de destaque escolhida
+  ops.push({ retangulo: { x: 26, y: 26, w: A4_W - 52, h: 8, cor: tema.primaria } })
+  // Linha dourada metálica sutil logo abaixo da faixa
+  ops.push({
+    linha: {
+      x1: 26,
+      y1: 35,
+      x2: A4_W - 26,
+      y2: 35,
+      w: 1,
+      cor: [0.831, 0.639, 0.278],
+    },
+  })
 
-  let y = 92
+  let y = 54
+
+  // CABEÇALHO DO EMITENTE (configurado ou padrão da administradora)
+  const emitenteNome = p.emitente_nome?.trim() || dados.locador.nome || 'GESTOR IMOBILIÁRIO 360'
+  const emitenteDoc =
+    p.emitente_cpf_cnpj?.trim() ||
+    (dados.locador.cpf_cnpj ? 'CPF/CNPJ: ' + dados.locador.cpf_cnpj : '')
+  const emitenteContato = p.emitente_contato?.trim() || ''
+  const emitenteEndereco = p.emitente_endereco?.trim() || ''
+
+  ops.push({
+    texto: {
+      x: M,
+      y,
+      size: 13,
+      bold: true,
+      cor: tema.textoTitulo,
+      conteudo: emitenteNome,
+    },
+  })
+  y += 13
+
+  if (emitenteDoc) {
+    ops.push({
+      texto: {
+        x: M,
+        y,
+        size: 8.5,
+        cor: COR_CINZA_MUTED,
+        conteudo: emitenteDoc,
+      },
+    })
+    y += 11
+  }
+
+  if (emitenteContato) {
+    ops.push({
+      texto: {
+        x: M,
+        y,
+        size: 8,
+        cor: COR_CINZA_MUTED,
+        conteudo: emitenteContato,
+      },
+    })
+    y += 11
+  }
+
+  if (emitenteEndereco) {
+    ops.push({
+      texto: {
+        x: M,
+        y,
+        size: 8,
+        cor: COR_CINZA_MUTED,
+        conteudo: emitenteEndereco,
+      },
+    })
+    y += 11
+  }
+
+  // Divisor do cabeçalho
+  y += 4
+  ops.push({
+    linha: {
+      x1: M,
+      y1: y,
+      x2: M + W,
+      y2: y,
+      w: 0.8,
+      cor: [0.83, 0.86, 0.9],
+    },
+  })
+  y += 18
+
+  // TÍTULO DO DOCUMENTO (configurável, ex: "RECIBO DE ALUGUEL")
+  const tituloDoc = p.titulo_documento?.trim() || 'RECIBO DE ALUGUEL'
   ops.push({
     texto: {
       x: cx,
       y,
-      size: 26,
+      size: 20,
       bold: true,
       centro: true,
-      cor: COR_VIOLETA_ESC,
-      conteudo: 'RECIBO',
+      cor: tema.textoTitulo,
+      conteudo: tituloDoc.toUpperCase(),
     },
   })
-  y += 24
+  y += 18
+
+  // Número sequencial em destaque
   ops.push({
     texto: {
       x: cx,
       y,
       size: 11,
+      bold: true,
       centro: true,
-      cor: COR_CINZA,
-      conteudo: 'Nº ' + (dados.numero || '—'),
+      cor: COR_CINZA_MUTED,
+      conteudo: 'Nº ' + (dados.numero || '—') + '  ·  COMPETÊNCIA ' + (c.competencia || '—'),
     },
   })
+  y += 24
 
-  y += 30
-  const intro =
-    'Recebemos de ' +
-    (dados.inquilino.nome || '—') +
-    (dados.inquilino.cpf_cnpj ? ' (CPF/CNPJ ' + dados.inquilino.cpf_cnpj + ')' : '') +
-    ', a importância de ' +
-    brl(c.valor_pago) +
-    ' (' +
-    valorPorExtenso(c.valor_pago) +
-    '), referente ao aluguel e encargos da competência ' +
-    (c.competencia || '—') +
-    ' do imóvel ' +
-    (dados.imovel.rotulo || dados.imovel.endereco || '—') +
-    '.'
-  for (const linha of quebrar(intro, 88)) {
-    ops.push({ texto: { x: cx, y, size: 10.5, centro: true, conteudo: linha } })
-    y += 16
+  // TEXTO DE QUITAÇÃO (personalizável com variáveis)
+  const textoQuitacao = formatarTextoQuitacao(p.texto_quitacao, dados)
+  for (const linha of quebrar(textoQuitacao, 84)) {
+    ops.push({
+      texto: {
+        x: cx,
+        y,
+        size: 10,
+        centro: true,
+        cor: COR_TEXTO_PADRAO,
+        conteudo: linha,
+      },
+    })
+    y += 14.5
   }
 
   y += 10
-  ops.push({ linha: { x1: M, y1: y, x2: M + W, y2: y, w: 0.6 } })
-  y += 24
+  ops.push({
+    linha: {
+      x1: M,
+      y1: y,
+      x2: M + W,
+      y2: y,
+      w: 0.6,
+      cor: [0.85, 0.88, 0.92],
+    },
+  })
+  y += 18
 
-  // Composição da cobrança
+  // COMPOSIÇÃO DETALHADA DA COBRANÇA
   ops.push({
     texto: {
       x: M,
       y,
       size: 9,
       bold: true,
-      cor: COR_VIOLETA_ESC,
-      conteudo: 'COMPOSIÇÃO DA COBRANÇA — COMPETÊNCIA ' + (c.competencia || '—'),
+      cor: tema.textoTitulo,
+      conteudo: 'DEMONSTRATIVO DE VALORES DA COBRANÇA',
     },
   })
-  y += 17
+  y += 15
+
   const itens: [string, number][] = [
     ['Aluguel', c.valor_aluguel],
     ['IPTU', c.valor_iptu],
     ['Condomínio', c.valor_condominio],
-    ['Outras cobranças', c.outras_cobrancas],
-    ['Descontos', -c.valor_desconto],
-    ['Acréscimos', c.valor_acrescimo],
-    ['Multa', c.valor_multa],
-    ['Juros', c.valor_juros],
+    ['Outras cobranças / Taxas', c.outras_cobrancas],
+    ['Descontos / Bonificações', -c.valor_desconto],
+    ['Acréscimos / Reembolsos', c.valor_acrescimo],
+    ['Multa moratória', c.valor_multa],
+    ['Juros de mora', c.valor_juros],
   ]
+
   for (const [rotulo, valor] of itens) {
     if (!valor) continue
-    ops.push({ texto: { x: M + 6, y, size: 10, conteudo: rotulo } })
-    ops.push({ texto: { x: M + W - 6, y, size: 10, direita: true, conteudo: brl(valor) } })
-    y += 14
+    ops.push({
+      texto: { x: M + 6, y, size: 9.5, cor: COR_TEXTO_PADRAO, conteudo: rotulo },
+    })
+    ops.push({
+      texto: {
+        x: M + W - 6,
+        y,
+        size: 9.5,
+        direita: true,
+        cor: COR_TEXTO_PADRAO,
+        conteudo: brl(valor),
+      },
+    })
+    y += 13.5
   }
-  ops.push({ texto: { x: M + 6, y, size: 10, bold: true, conteudo: 'Valor total da cobrança' } })
+
+  // Linha separadora de totais
+  y += 3
   ops.push({
-    texto: { x: M + W - 6, y, size: 10, bold: true, direita: true, conteudo: brl(c.valor_total) },
+    linha: {
+      x1: M + 6,
+      y1: y,
+      x2: M + W - 6,
+      y2: y,
+      w: 0.5,
+      cor: [0.85, 0.88, 0.92],
+    },
   })
-  y += 17
+  y += 12
+
   ops.push({
     texto: {
       x: M + 6,
       y,
-      size: 11,
+      size: 9.5,
       bold: true,
-      cor: COR_VERDE,
-      conteudo: 'Valor recebido (quitação)',
+      cor: COR_TEXTO_PADRAO,
+      conteudo: 'Total da cobrança',
     },
   })
   ops.push({
     texto: {
       x: M + W - 6,
       y,
-      size: 11,
+      size: 9.5,
+      bold: true,
+      direita: true,
+      cor: COR_TEXTO_PADRAO,
+      conteudo: brl(c.valor_total),
+    },
+  })
+  y += 16
+
+  // Box de valor quitado
+  ops.push({
+    retangulo: {
+      x: M + 4,
+      y: y - 10,
+      w: W - 8,
+      h: 22,
+      cor: [0.93, 0.98, 0.94],
+    },
+  })
+  ops.push({
+    linha: {
+      x1: M + 4,
+      y1: y - 10,
+      x2: M + W - 4,
+      y2: y - 10,
+      w: 0.5,
+      cor: [0.65, 0.85, 0.7],
+    },
+  })
+  ops.push({
+    linha: {
+      x1: M + 4,
+      y1: y + 12,
+      x2: M + W - 4,
+      y2: y + 12,
+      w: 0.5,
+      cor: [0.65, 0.85, 0.7],
+    },
+  })
+
+  ops.push({
+    texto: {
+      x: M + 8,
+      y,
+      size: 10.5,
+      bold: true,
+      cor: COR_VERDE,
+      conteudo: 'Total recebido (quitação)',
+    },
+  })
+  ops.push({
+    texto: {
+      x: M + W - 8,
+      y,
+      size: 10.5,
       bold: true,
       direita: true,
       cor: COR_VERDE,
       conteudo: brl(c.valor_pago),
     },
   })
+  y += 18
+
   if (dados.saldo > 0.005) {
-    y += 14
     ops.push({
       texto: {
         x: M + 6,
         y,
-        size: 9.5,
+        size: 9,
+        bold: true,
         cor: COR_AMBAR,
-        conteudo: 'Saldo remanescente: ' + brl(dados.saldo),
+        conteudo: 'Saldo remanescente em aberto: ' + brl(dados.saldo),
       },
     })
+    y += 14
   }
 
-  y += 28
-  const info =
-    'Data do pagamento: ' +
+  y += 12
+  // DADOS ADICIONAIS DO PAGAMENTO E IMÓVEL
+  const dadosPagto =
+    'Data da liquidação: ' +
     (dados.data_pagamento_br || '—') +
-    '   ·   Forma de pagamento: ' +
+    '   ·   Forma: ' +
     (FORMA_LABEL[c.forma_pagamento] || c.forma_pagamento || '—') +
-    (c.conta_bancaria ? '   ·   Recebido em: ' + c.conta_bancaria : '')
-  for (const linha of quebrar(info, 88)) {
-    ops.push({ texto: { x: cx, y, size: 10.5, centro: true, conteudo: linha } })
-    y += 16
-  }
-  y += 8
-  const locadorTxt =
-    'Locador(a): ' +
-    (dados.locador.nome || '—') +
-    (dados.locador.cpf_cnpj ? ' (CPF/CNPJ ' + dados.locador.cpf_cnpj + ')' : '') +
-    (dados.contrato.numero ? '   ·   Contrato ' + dados.contrato.numero : '')
-  for (const linha of quebrar(locadorTxt, 88)) {
-    ops.push({ texto: { x: cx, y, size: 10.5, centro: true, conteudo: linha } })
-    y += 16
+    (c.conta_bancaria ? '   ·   Destino: ' + c.conta_bancaria : '')
+
+  for (const linha of quebrar(dadosPagto, 86)) {
+    ops.push({
+      texto: { x: cx, y, size: 9.5, centro: true, cor: COR_TEXTO_PADRAO, conteudo: linha },
+    })
+    y += 14
   }
 
-  y += 8
-  ops.push({ linha: { x1: M, y1: y, x2: M + W, y2: y, w: 0.6 } })
+  const dadosLocador =
+    'Locador: ' +
+    (dados.locador.nome || emitenteNome) +
+    (dados.locador.cpf_cnpj ? ' (' + dados.locador.cpf_cnpj + ')' : '') +
+    (dados.contrato.numero ? '   ·   Contrato: ' + dados.contrato.numero : '')
 
-  // Assinatura
-  const yAss = A4_H - 190
-  ops.push({ linha: { x1: 170, y1: yAss, x2: A4_W - 170, y2: yAss, w: 1, cor: COR_VIOLETA_ESC } })
+  for (const linha of quebrar(dadosLocador, 86)) {
+    ops.push({
+      texto: { x: cx, y, size: 9, centro: true, cor: COR_CINZA_MUTED, conteudo: linha },
+    })
+    y += 13
+  }
+
+  // OBSERVAÇÕES ESPECÍFICAS / PADRÃO
+  if (p.observacoes?.trim()) {
+    y += 6
+    ops.push({
+      texto: {
+        x: M,
+        y,
+        size: 8.5,
+        bold: true,
+        cor: tema.textoTitulo,
+        conteudo: 'OBSERVAÇÕES:',
+      },
+    })
+    y += 12
+    for (const linha of quebrar(p.observacoes.trim(), 88)) {
+      ops.push({
+        texto: { x: M, y, size: 8.5, cor: COR_TEXTO_PADRAO, conteudo: linha },
+      })
+      y += 12
+    }
+  }
+
+  // CAMPO DE ASSINATURA
+  const yAss = Math.max(y + 24, A4_H - 150)
   ops.push({
-    texto: {
-      x: cx,
-      y: yAss + 16,
-      size: 9.5,
-      centro: true,
-      conteudo: dados.locador.nome || 'Locador(a) / Administradora',
+    linha: {
+      x1: cx - 120,
+      y1: yAss,
+      x2: cx + 120,
+      y2: yAss,
+      w: 0.9,
+      cor: tema.primaria,
     },
   })
   ops.push({
     texto: {
       x: cx,
-      y: yAss + 30,
+      y: yAss + 14,
+      size: 9.5,
+      bold: true,
+      centro: true,
+      cor: COR_TEXTO_PADRAO,
+      conteudo: emitenteNome || dados.locador.nome || 'Locador(a) / Administradora',
+    },
+  })
+  ops.push({
+    texto: {
+      x: cx,
+      y: yAss + 26,
       size: 8,
       centro: true,
-      cor: COR_CINZA,
-      conteudo: 'Assinatura do locador(a) / responsável',
+      cor: COR_CINZA_MUTED,
+      conteudo: 'Assinatura do emitente / responsável legal',
     },
   })
+
+  // RODAPÉ CONFIGURÁVEL
+  const textoRodape =
+    p.rodape?.trim() ||
+    'Emitido pelo Gestor Imobiliário 360 em ' + new Date().toLocaleDateString('pt-BR')
   ops.push({
     texto: {
       x: cx,
-      y: A4_H - 52,
+      y: A4_H - 42,
       size: 7.5,
       centro: true,
-      cor: COR_CINZA,
-      conteudo: 'Emitido pelo Gestor Imobiliário 360 em ' + new Date().toLocaleDateString('pt-BR'),
+      cor: COR_CINZA_MUTED,
+      conteudo: textoRodape,
     },
   })
 
